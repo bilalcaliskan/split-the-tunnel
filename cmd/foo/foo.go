@@ -1,11 +1,11 @@
 package foo
 
 import (
-	"github.com/bilalcaliskan/golang-cli-template/cmd/foo/options"
+	"github.com/bilalcaliskan/split-the-tunnel/cmd/foo/options"
 
-	rootopts "github.com/bilalcaliskan/golang-cli-template/cmd/root/options"
+	rootopts "github.com/bilalcaliskan/split-the-tunnel/cmd/root/options"
 
-	"github.com/bilalcaliskan/golang-cli-template/internal/logging"
+	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +33,6 @@ var (
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger.Info().Str("rootOptsKey", fooOpts.RootOptions.Key).Msg("hello guys")
 
 			return nil
 		},
