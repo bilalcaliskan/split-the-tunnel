@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/bilalcaliskan/golang-cli-template/cmd/root/options"
+	"github.com/bilalcaliskan/split-the-tunnel/cmd/root/options"
 	"github.com/spf13/cobra"
 )
 

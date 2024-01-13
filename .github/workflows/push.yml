@@ -21,10 +21,7 @@ jobs:
         run: make -s clean
 
   test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -63,38 +60,35 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-#  sonarcloud:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-#      - name: Install Go
-#        uses: actions/setup-go@v5
-#        with:
-#          go-version-file: "go.mod"
-#          cache: true
-#      - name: Test
-#        run: make -s test
-#      - name: SonarCloud Scan
-#        uses: SonarSource/sonarcloud-github-action@master
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#        with:
-#          args: >
-#            -Dproject.settings=build/ci/sonar-project.properties
-#      - name: SonarQube Quality Gate check
-#        uses: sonarsource/sonarqube-quality-gate-action@master
-#        timeout-minutes: 5
-#        env:
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+          cache: true
+      - name: Test
+        run: make -s test
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dproject.settings=build/ci/sonar-project.properties
+      - name: SonarQube Quality Gate check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -103,7 +97,7 @@ jobs:
         with:
           go-version-file: "go.mod"
           cache: true
-      - name: Test
+      - name: Build
         run: make -s build
 
   tag:
@@ -113,7 +107,7 @@ jobs:
       - test
       - codeql
       - staticcheck
-#      - sonarcloud
+      - sonarcloud
       - build
     steps:
       - name: Checkout
@@ -142,14 +136,6 @@ jobs:
           echo "::set-output name=latest_tag::$(git describe --tags $(git rev-list --tags --max-count=1))"
           echo "::set-output name=build_time::$(date -u +'%m-%d-%YT%H:%M:%SZ')"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v2
-#      - name: Docker Login
-#        uses: docker/login-action@v2
-#        with:
-#          registry: docker.io
-#          username: ${{ secrets.DOCKER_USERNAME }}
-#          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -162,4 +148,3 @@ jobs:
           args: release --clean --config build/package/.goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}

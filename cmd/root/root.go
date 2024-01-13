@@ -4,11 +4,11 @@ import (
 	"context"
 	"os"
 
-	"github.com/bilalcaliskan/golang-cli-template/cmd/foo"
-	"github.com/bilalcaliskan/golang-cli-template/cmd/root/options"
+	"github.com/bilalcaliskan/split-the-tunnel/cmd/foo"
+	"github.com/bilalcaliskan/split-the-tunnel/cmd/root/options"
 
-	"github.com/bilalcaliskan/golang-cli-template/internal/logging"
-	"github.com/bilalcaliskan/golang-cli-template/internal/version"
+	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
+	"github.com/bilalcaliskan/split-the-tunnel/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func init() {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "golang-cli-template",
+	Use:     "split-the-tunnel",
 	Short:   "",
 	Long:    ``,
 	Version: ver.GitVersion,

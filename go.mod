@@ -1,4 +1,4 @@
-module github.com/bilalcaliskan/golang-cli-template
+module github.com/bilalcaliskan/split-the-tunnel
 
 go 1.21
 
