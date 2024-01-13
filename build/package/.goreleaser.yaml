@@ -1,9 +1,15 @@
 ---
 project_name: split-the-tunnel
 
+variables:
+  versionDir: internal/version
+  module: github.com/bilalcaliskan/{{ .ProjectName }}
+
 env:
   - CGO_ENABLED=0
   - GO111MODULE=auto
+#  - VERSION_DIR=internal/version
+#  - MODULE=github.com/bilalcaliskan/{{ .ProjectName }}
 
 before:
   hooks:
@@ -17,9 +23,11 @@ builds:
       - darwin
     goarch:
       - amd64
-    binary: golang-cli-template
+    binary: "{{ .ProjectName }}"
     ldflags:
-      - -s -w -X github.com/bilalcaliskan/split-the-tunnel/internal/version.gitVersion={{ .Version }} -X github.com/bilalcaliskan/split-the-tunnel/internal/version.gitCommit={{ .ShortCommit }}  -X github.com/bilalcaliskan/split-the-tunnel/internal/version.buildDate={{ .CommitDate }}
+      - -s -w -X {{ .Var.module }}/{{ .Var.versionDir }}.gitVersion={{ .Version }}
+      - -s -w -X {{ .Var.module }}/{{ .Var.versionDir }}.gitCommit={{ .ShortCommit }}
+      - -s -w -X {{ .Var.module }}/{{ .Var.versionDir }}.buildDate={{ .CommitDate }}
     main: ./main.go
 
 archives:
@@ -32,7 +40,7 @@ archives:
 release:
   github:
     owner: bilalcaliskan
-    name: split-the-tunnel
+    name: "{{ .ProjectName }}"
 
 changelog:
   sort: asc
