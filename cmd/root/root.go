@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/bilalcaliskan/split-the-tunnel/cmd/foo"
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/root/options"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
@@ -15,14 +14,11 @@ import (
 var (
 	opts *options.RootOptions
 	ver  = version.Get()
-	//bannerFilePath = "build/ci/banner.txt"
 )
 
 func init() {
 	opts = options.GetRootOptions()
 	opts.InitFlags(rootCmd)
-
-	rootCmd.AddCommand(foo.FooCmd)
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -32,15 +28,13 @@ var rootCmd = &cobra.Command{
 	Long:    ``,
 	Version: ver.GitVersion,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		//if _, err := os.Stat("build/ci/banner.txt"); err == nil {
-		//	bannerBytes, _ := os.ReadFile("build/ci/banner.txt")
-		//	banner.Init(os.Stdout, true, false, strings.NewReader(string(bannerBytes)))
-		//}
-
 		logger := logging.GetLogger()
 		logger.Info().Str("appVersion", ver.GitVersion).Str("goVersion", ver.GoVersion).Str("goOS", ver.GoOs).
 			Str("goArch", ver.GoArch).Str("gitCommit", ver.GitCommit).Str("buildDate", ver.BuildDate).
-			Msg("golang-cli-template is started!")
+			Msg("split-the-tunnel is started!")
+
+		logger.Info().Msg(opts.Domain)
+		logger.Info().Msg(opts.DnsServers)
 
 		cmd.SetContext(context.WithValue(cmd.Context(), options.LoggerKey{}, logger))
 		cmd.SetContext(context.WithValue(cmd.Context(), options.OptsKey{}, opts))
