@@ -7,12 +7,14 @@ var rootOptions = &RootOptions{}
 type (
 	OptsKey   struct{}
 	LoggerKey struct{}
+	DomainKey struct{}
+	DnsKey    struct{}
 )
 
 // RootOptions contains frequent command line and application options.
 type RootOptions struct {
-	// Key is the dummy option
-	Key string
+	Domain     string
+	DnsServers string
 }
 
 // GetRootOptions returns the pointer of RootOptions
@@ -21,5 +23,6 @@ func GetRootOptions() *RootOptions {
 }
 
 func (opts *RootOptions) InitFlags(cmd *cobra.Command) {
-	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "", "", "")
+	cmd.Flags().StringVarP(&opts.Domain, "domain", "", "", "domain to be used for split tunneling")
+	cmd.Flags().StringVarP(&opts.DnsServers, "dns-servers", "", "", "comma separated dns servers to be used for split tunneling")
 }
