@@ -30,6 +30,14 @@ $ split-the-tunnel start
 $ split-the-tunnel add --domain example.com
 ```
 
+## Testing
+Run below command in a separate terminal after you launch daemon:
+```
+$ echo "add google.com" | socat - UNIX-CONNECT:/tmp/mydaemon.sock
+$ echo "remove google.com" | socat - UNIX-CONNECT:/tmp/mydaemon.sock
+$ echo "list" | socat - UNIX-CONNECT:/tmp/mydaemon.sock
+```
+
 ## Development
 This project requires below tools while developing:
 - [Golang 1.21](https://golang.org/doc/go1.21)
