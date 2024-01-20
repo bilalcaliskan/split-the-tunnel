@@ -1,4 +1,4 @@
-package root
+package main
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 	"github.com/bilalcaliskan/split-the-tunnel/internal/ipc"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/utils"
 
-	"github.com/bilalcaliskan/split-the-tunnel/cmd/root/options"
+	"github.com/bilalcaliskan/split-the-tunnel/cmd/daemon/options"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/version"
 	"github.com/spf13/cobra"
@@ -23,11 +23,11 @@ var (
 
 func init() {
 	opts = options.GetRootOptions()
-	opts.InitFlags(rootCmd)
+	opts.InitFlags(daemonCmd)
 }
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+// daemonCmd represents the base command when called without any subcommands
+var daemonCmd = &cobra.Command{
 	Use:     "split-the-tunnel",
 	Short:   "",
 	Long:    ``,
@@ -76,10 +76,8 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+func main() {
+	if err := daemonCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

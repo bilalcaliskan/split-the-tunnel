@@ -5,7 +5,7 @@ errorCode = 1
 
 # https://github.com/mgechev/revive#available-rules
 [rule.atomic]
-# [rule.blank-imports] # commented out because of automaxprocs blank import in cmd/root.go
+# [rule.blank-imports] # commented out because of automaxprocs blank import in cmd/daemon.go
 [rule.bool-literal-in-expr]
 [rule.confusing-results]
 [rule.constant-logical-expr]
