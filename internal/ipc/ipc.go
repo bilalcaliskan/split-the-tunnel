@@ -165,9 +165,6 @@ func handleListCommand(conn net.Conn) error {
 
 func Cleanup(path string) error {
 	// Perform any cleanup and shutdown tasks here
-	if err := os.Remove(path); err != nil {
-		return err
-	}
 
-	return nil
+	return os.Remove(path)
 }
