@@ -24,7 +24,7 @@ builds:
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitVersion={{ .Version }}
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitCommit={{ .ShortCommit }}
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.buildDate={{ .CommitDate }}
-    main: ./main.go
+    main: ./cmd/daemon/daemon.go
   - id: cli
     goos:
       - linux
@@ -35,7 +35,7 @@ builds:
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitVersion={{ .Version }}
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitCommit={{ .ShortCommit }}
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.buildDate={{ .CommitDate }}
-    main: ./main.go
+    main: ./cmd/cli/cli.go
 
 archives:
   - files:
