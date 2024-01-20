@@ -14,13 +14,23 @@ before:
     - go mod download
 
 builds:
-  - id: binary
+  - id: daemon
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
     binary: "{{ .ProjectName }}"
+    ldflags:
+      - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitVersion={{ .Version }}
+      - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitCommit={{ .ShortCommit }}
+      - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.buildDate={{ .CommitDate }}
+    main: ./main.go
+  - id: cli
+    goos:
+      - linux
+    goarch:
+      - amd64
+    binary: stt-cli
     ldflags:
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitVersion={{ .Version }}
       - -s -w -X {{ .Env.MODULE }}/{{ .Env.VERSION_DIR }}.gitCommit={{ .ShortCommit }}
