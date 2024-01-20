@@ -156,27 +156,36 @@ func processCommand(command string, conn net.Conn) error {
 	switch parts[0] {
 	case "add":
 		if len(parts) < 2 {
-			_, err := conn.Write([]byte("'add' command requires a domain name\n"))
+			_, err := conn.Write([]byte("'add' command requires at least a domain name\n"))
 			if err != nil {
 				return err
 			}
 
-			return errors.New("'add' command requires a domain name")
+			return errors.New("'add' command requires at least a domain name")
 		}
 
-		return handleAddCommand(parts[1], conn)
+		return handleAddCommand(parts[1:], conn)
 	case "remove":
 		if len(parts) < 2 {
-			_, err := conn.Write([]byte("'remove' command requires a domain name\n"))
+			_, err := conn.Write([]byte("'remove' command requires at least a domain name\n"))
 			if err != nil {
 				return err
 			}
 
-			return errors.New("'remove' command requires a domain name")
+			return errors.New("'remove' command requires at least a domain name")
 		}
 
-		return handleRemoveCommand(parts[1], conn)
+		return handleRemoveCommand(parts[1:], conn)
 	case "list":
+		if len(parts) != 1 {
+			_, err := conn.Write([]byte("'list' command does not accept any arguments\n"))
+			if err != nil {
+				return err
+			}
+
+			return errors.New("'list' command does not accept any arguments")
+		}
+
 		return handleListCommand(conn)
 	default:
 		_, err := conn.Write([]byte("unknown command received\n"))
@@ -184,22 +193,34 @@ func processCommand(command string, conn net.Conn) error {
 	}
 }
 
-func handleAddCommand(domain string, conn net.Conn) error {
+func handleAddCommand(domains []string, conn net.Conn) error {
 	// Add the domain to the routing table
 	// ...
 
-	// Send a response to the client
-	_, err := conn.Write([]byte("added route for " + domain + "\n"))
-	return err
+	for _, domain := range domains {
+		// Send a response to the client
+		_, err := conn.Write([]byte("added route for " + domain + "\n"))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func handleRemoveCommand(domain string, conn net.Conn) error {
+func handleRemoveCommand(domains []string, conn net.Conn) error {
 	// Remove the domain from the routing table
 	// ...
 
-	// Send a response to the client
-	_, err := conn.Write([]byte("removed route for " + domain + "\n"))
-	return err
+	for _, domain := range domains {
+		// Send a response to the client
+		_, err := conn.Write([]byte("removed route for " + domain + "\n"))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func handleListCommand(conn net.Conn) error {
