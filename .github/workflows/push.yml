@@ -97,8 +97,10 @@ jobs:
         with:
           go-version-file: "go.mod"
           cache: true
-      - name: Build
-        run: make -s build
+      - name: Build daemon
+        run: make -s build-daemon
+      - name: Build CLi
+        run: make -s build-cli
 
   tag:
     runs-on: ubuntu-latest
