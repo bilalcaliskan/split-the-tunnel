@@ -6,10 +6,9 @@ import (
 )
 
 type RouteEntry struct {
-	Domain          string `json:"domain"`
-	ResolvedIP      string `json:"resolvedIP"`
-	OriginalGateway string `json:"originalGateway"`
-	// Add other fields as necessary
+	Domain     string `json:"domain"`
+	ResolvedIP string `json:"resolvedIP"`
+	Gateway    string `json:"gateway"`
 }
 
 type State struct {
