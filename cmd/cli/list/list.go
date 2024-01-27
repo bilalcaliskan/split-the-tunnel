@@ -1,8 +1,6 @@
 package list
 
 import (
-	"strings"
-
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
 
@@ -29,9 +27,7 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := logging.GetLogger()
 
-		argsStr := strings.Join(args, " ")
-
-		logger.Info().Str("args", argsStr).Msg("list called")
+		logger.Info().Msg("list called")
 
 		req := cmd.Name()
 		res, err := utils.SendCommandToDaemon(utils.SocketPath, req)

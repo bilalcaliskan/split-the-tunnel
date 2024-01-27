@@ -3,39 +3,58 @@ package state
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/pkg/errors"
 )
 
+// State is the struct that holds the state of the application
+type State struct {
+	Entries []*RouteEntry `json:"entries"`
+}
+
+// RouteEntry is the struct that holds the state of a single route entry
 type RouteEntry struct {
 	Domain     string `json:"domain"`
 	ResolvedIP string `json:"resolvedIP"`
 	Gateway    string `json:"gateway"`
 }
 
-type State struct {
-	Entries []RouteEntry `json:"entries"`
-}
+// AddEntry adds a new route entry to the state. If the entry already exists, it updates the ResolvedIP.
+func (s *State) AddEntry(entry *RouteEntry) error {
+	for _, e := range s.Entries {
+		if e.Domain == entry.Domain {
+			if e.ResolvedIP != entry.ResolvedIP {
+				e.ResolvedIP = entry.ResolvedIP
+			}
+			return nil
+		}
+	}
 
-func (s *State) AddEntry(entry RouteEntry) {
 	s.Entries = append(s.Entries, entry)
+	return nil
 }
 
-func (s *State) RemoveEntry(domain string) {
+// RemoveEntry removes a route entry from the state.
+func (s *State) RemoveEntry(domain string) error {
 	for i, entry := range s.Entries {
 		if entry.Domain == domain {
 			s.Entries = append(s.Entries[:i], s.Entries[i+1:]...)
-			break
+			return nil
 		}
 	}
+
+	// target entry not found
+	return errors.New("entry not found")
 }
 
-func (s *State) GetEntry(domain string) *RouteEntry {
-	for _, entry := range s.Entries {
-		if entry.Domain == domain {
-			return &entry
+func (s *State) GetEntry(domain string) (*RouteEntry, error) {
+	for i := range s.Entries {
+		if s.Entries[i].Domain == domain {
+			return s.Entries[i], nil
 		}
 	}
 
-	return nil
+	return nil, errors.New("entry not found")
 }
 
 func (s *State) Read(path string) error {

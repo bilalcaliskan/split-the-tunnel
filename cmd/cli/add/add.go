@@ -34,7 +34,7 @@ to quickly create a Cobra application.`,
 			req := fmt.Sprintf("%s %s", cmd.Name(), arg)
 			res, err := utils.SendCommandToDaemon(utils.SocketPath, req)
 			if err != nil {
-				logger.Error().Str("command", req).Str("response", res).Err(err).Msg("error sending command to daemon")
+				logger.Error().Str("command", req).Err(err).Msg("error sending command to daemon")
 				continue
 			}
 
