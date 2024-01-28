@@ -4,15 +4,32 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
+
+func ResolveDomain(domain string) ([]string, error) {
+	ips, err := net.LookupIP(domain)
+	if err != nil {
+		return nil, err
+	}
+
+	var ipStrings []string
+	for _, ip := range ips {
+		ipStrings = append(ipStrings, ip.String())
+	}
+
+	return ipStrings, nil
+}
 
 func GetDefaultNonVPNGateway() (string, error) {
 	file, err := os.Open("/proc/net/route")
 	if err != nil {
-		return "", fmt.Errorf("failed to open routing info: %w", err)
+		return "", errors.Wrap(err, "failed to open routing info file")
 	}
 	defer file.Close()
 
@@ -41,7 +58,7 @@ func GetDefaultNonVPNGateway() (string, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("error reading file: %w", err)
+		return "", errors.Wrap(err, "error reading file")
 	}
 
 	if bestGateway == "" {
@@ -54,7 +71,7 @@ func GetDefaultNonVPNGateway() (string, error) {
 func parseHexIP(hexStr string) (string, error) {
 	ipBytes, err := hex.DecodeString(hexStr)
 	if err != nil {
-		return "", fmt.Errorf("failed to decode hex string: %w", err)
+		return "", errors.Wrap(err, "failed to decode hex string")
 	}
 
 	if len(ipBytes) != 4 {
@@ -69,21 +86,7 @@ func parseHexIP(hexStr string) (string, error) {
 	return fmt.Sprintf("%d.%d.%d.%d", ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]), nil
 }
 
-/*func resolveDomain(domain string) ([]string, error) {
-	ips, err := net.LookupIP(domain)
-	if err != nil {
-		return nil, err
-	}
-
-	var ipStrings []string
-	for _, ip := range ips {
-		ipStrings = append(ipStrings, ip.String())
-	}
-
-	return ipStrings, nil
-}
-
-func addRoute(ip, gateway string) error {
+/*func addRoute(ip, gateway string) error {
 	cmd := exec.Command("sudo", "ip", "route", "add", ip, "via", gateway)
 	err := cmd.Run()
 	if err != nil {
