@@ -99,38 +99,15 @@ func processCommand(logger zerolog.Logger, command, gateway string, conn net.Con
 	case "add":
 		logger = logger.With().Str("operation", "add").Logger()
 
-		//if len(parts) < 2 {
-		//	errMsg := fmt.Sprintf("'%s' command requires at least a domain name", parts[0])
-		//
-		//	res := &DaemonResponse{
-		//		Success:  false,
-		//		Response: "",
-		//		Error:    errMsg,
-		//	}
-		//
-		//	responseJson, err := json.Marshal(res)
-		//	if err != nil {
-		//		logger.Error().Err(err).Msg("failed to marshal response")
-		//		return
-		//	}
-		//
-		//	if _, err := conn.Write(responseJson); err != nil {
-		//		logger.Error().Err(err).Msg("failed to write response to unix domain socket")
-		//		return
-		//	}
-		//
-		//	logger.Error().Msg(errMsg)
-		//}
-
 		handleAddCommand(logger, gateway, parts[1:], conn, st)
-		//case "remove":
-		//	logger = logger.With().Str("operation", "remove").Logger()
-		//
-		//	handleRemoveCommand(parts[1:], conn)
-		//case "list":
-		//	logger = logger.With().Str("operation", "remove").Logger()
-		//
-		//	handleListCommand(conn)
+	case "remove":
+		logger = logger.With().Str("operation", "remove").Logger()
+
+		handleRemoveCommand(logger, gateway, parts[1:], conn, st)
+	case "list":
+		logger = logger.With().Str("operation", "list").Logger()
+
+		handleListCommand(logger, conn, st)
 	}
 }
 
@@ -220,29 +197,57 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 	}
 }
 
-//func handleRemoveCommand(domains []string, conn net.Conn) error {
-//	// Remove the domain from the routing table
-//	// ...
-//
-//	for _, domain := range domains {
-//		// Send a response to the client
-//		_, err := conn.Write([]byte("removed route for " + domain + "\n"))
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	return nil
-//}
+func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, conn net.Conn, st *state.State) {
+	for _, domain := range domains {
+		response := new(DaemonResponse)
 
-//func handleListCommand(conn net.Conn) error {
-//	// List the domains that we manage from the routing table
-//	// ...
-//
-//	// Send a response to the client
-//	_, err := conn.Write([]byte("listing routes\n"))
-//	return err
-//}
+		response.Success = false
+		response.Response = ""
+		response.Error = fmt.Sprintf("a dummy error for domain %s", domain)
+
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			logger.Error().
+				Err(err).
+				Str("domain", domain).
+				Msg("failed to marshal response object")
+			continue
+		}
+
+		if _, err := conn.Write(responseJson); err != nil {
+			logger.Error().
+				Err(err).
+				Str("domain", domain).
+				Msg("failed to write response to unix domain socket")
+			continue
+		}
+
+		continue
+	}
+}
+
+func handleListCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
+	response := new(DaemonResponse)
+
+	response.Success = false
+	response.Response = ""
+	response.Error = "a dummy error list command"
+
+	responseJson, err := json.Marshal(response)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Msg("failed to marshal response object")
+		return
+	}
+
+	if _, err := conn.Write(responseJson); err != nil {
+		logger.Error().
+			Err(err).
+			Msg("failed to write response to unix domain socket")
+		return
+	}
+}
 
 func Cleanup(path string) error {
 	// Perform any cleanup and shutdown tasks here
