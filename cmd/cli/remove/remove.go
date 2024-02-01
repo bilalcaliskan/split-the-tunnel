@@ -2,7 +2,6 @@ package remove
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
@@ -30,18 +29,19 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := logging.GetLogger()
 
-		argsStr := strings.Join(args, " ")
+		logger.Info().Any("args", args).Msg("add called")
 
-		logger.Info().Str("args", argsStr).Msg("remove called")
+		for _, arg := range args {
+			req := fmt.Sprintf("%s %s", cmd.Name(), arg)
+			res, err := utils.SendCommandToDaemon(utils.SocketPath, req)
+			if err != nil {
+				logger.Error().Str("command", req).Err(err).Msg("error sending command to daemon")
+				continue
+			}
 
-		req := fmt.Sprintf("%s %s", cmd.Name(), argsStr)
-		res, err := utils.SendCommandToDaemon(utils.SocketPath, req)
-		if err != nil {
-			logger.Error().Err(err).Msg("error sending command to daemon")
-			return err
+			logger.Info().Str("command", req).Str("response", res).Msg("successfully processed command")
 		}
 
-		logger.Info().Str("command", req).Str("response", res).Msg("successfully processed command")
 		return nil
 	},
 }
