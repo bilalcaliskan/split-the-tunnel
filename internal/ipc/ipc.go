@@ -9,18 +9,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
+
 	"github.com/bilalcaliskan/split-the-tunnel/internal/utils"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/state"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 )
-
-type DaemonResponse struct {
-	Success  bool   `json:"success"`
-	Response string `json:"response"`
-	Error    string `json:"error"`
-}
 
 func InitIPC(path string, logger zerolog.Logger) error {
 	// Check and remove the socket file if it already exists
@@ -42,7 +38,7 @@ func InitIPC(path string, logger zerolog.Logger) error {
 			// Accept new connections
 			conn, err := listener.Accept()
 			if err != nil {
-				logger.Error().Err(err).Msg("failed to accept connection")
+				logger.Error().Err(err).Msg(constants.FailedToAcceptConnection)
 				continue
 			}
 
@@ -62,7 +58,7 @@ func handleConnection(conn net.Conn, logger zerolog.Logger) {
 		message, err := reader.ReadString('\n')
 		if err != nil {
 			if err != io.EOF {
-				logger.Error().Err(err).Msg("error reading from IPC connection")
+				logger.Error().Err(err).Msg(constants.FailedToReadFromIPC)
 			}
 
 			break
@@ -73,14 +69,14 @@ func handleConnection(conn net.Conn, logger zerolog.Logger) {
 
 		st := new(state.State)
 		if err := st.Read("/tmp/state.json"); err != nil {
-			logger.Error().Err(err).Msg("failed to read state")
+			logger.Error().Err(err).Msg(constants.FailedToReadState)
 			continue
 		}
 
 		// get default gateway
 		gw, err := utils.GetDefaultNonVPNGateway()
 		if err != nil {
-			logger.Error().Err(err).Msg("failed to get default gateway")
+			logger.Error().Err(err).Msg(constants.FailedToGetDefaultGateway)
 			continue
 		}
 
@@ -91,7 +87,7 @@ func handleConnection(conn net.Conn, logger zerolog.Logger) {
 func processCommand(logger zerolog.Logger, command, gateway string, conn net.Conn, st *state.State) {
 	parts := strings.Fields(command)
 	if len(parts) == 0 {
-		logger.Error().Msg("empty command received")
+		logger.Error().Msg(constants.EmptyCommandReceived)
 		return
 	}
 
@@ -121,14 +117,14 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 		if err != nil {
 			response.Success = false
 			response.Response = ""
-			response.Error = errors.Wrap(err, "failed to resolve domain").Error()
+			response.Error = errors.Wrap(err, constants.FailedToResolveDomain).Error()
 
 			responseJson, err := json.Marshal(response)
 			if err != nil {
 				logger.Error().
 					Err(err).
 					Str("domain", domain).
-					Msg("failed to marshal response object")
+					Msg(constants.FailedToMarshalResponse)
 				continue
 			}
 
@@ -136,7 +132,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 				logger.Error().
 					Err(err).
 					Str("domain", domain).
-					Msg("failed to write response to unix domain socket")
+					Msg(constants.FailedToWriteToUnixDomainSocket)
 				continue
 			}
 
@@ -152,14 +148,14 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 		if err := st.AddEntry(re); err != nil {
 			response.Success = false
 			response.Response = ""
-			response.Error = errors.Wrap(err, "failed to write RouteEntry to state").Error()
+			response.Error = errors.Wrap(err, constants.FailedToWriteRouteEntry).Error()
 
 			responseJson, err := json.Marshal(response)
 			if err != nil {
 				logger.Error().
 					Err(err).
 					Str("domain", domain).
-					Msg("failed to marshal response object")
+					Msg(constants.FailedToMarshalResponse)
 				continue
 			}
 
@@ -167,7 +163,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 				logger.Error().
 					Err(err).
 					Str("domain", domain).
-					Msg("failed to write response to unix domain socket")
+					Msg(constants.FailedToWriteToUnixDomainSocket)
 				continue
 			}
 		}
@@ -181,7 +177,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 			logger.Error().
 				Err(err).
 				Str("domain", domain).
-				Msg("failed to marshal response object")
+				Msg(constants.FailedToMarshalResponse)
 			continue
 		}
 
@@ -191,7 +187,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 			logger.Error().
 				Err(err).
 				Str("domain", domain).
-				Msg("failed to write response to unix domain socket")
+				Msg(constants.FailedToWriteToUnixDomainSocket)
 			continue
 		}
 	}
@@ -210,7 +206,7 @@ func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, con
 			logger.Error().
 				Err(err).
 				Str("domain", domain).
-				Msg("failed to marshal response object")
+				Msg(constants.FailedToMarshalResponse)
 			continue
 		}
 
@@ -218,7 +214,7 @@ func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, con
 			logger.Error().
 				Err(err).
 				Str("domain", domain).
-				Msg("failed to write response to unix domain socket")
+				Msg(constants.FailedToWriteToUnixDomainSocket)
 			continue
 		}
 
@@ -237,14 +233,14 @@ func handleListCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 	if err != nil {
 		logger.Error().
 			Err(err).
-			Msg("failed to marshal response object")
+			Msg(constants.FailedToMarshalResponse)
 		return
 	}
 
 	if _, err := conn.Write(responseJson); err != nil {
 		logger.Error().
 			Err(err).
-			Msg("failed to write response to unix domain socket")
+			Msg(constants.FailedToWriteToUnixDomainSocket)
 		return
 	}
 }

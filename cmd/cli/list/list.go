@@ -2,6 +2,7 @@ package list
 
 import (
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
+	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
 	"github.com/spf13/cobra"
 )
@@ -29,12 +30,12 @@ to quickly create a Cobra application.`,
 		logger.Info().Msg("list called")
 		res, err := utils.SendCommandToDaemon(utils.SocketPath, cmd.Name())
 		if err != nil {
-			logger.Error().Str("command", cmd.Name()).Err(err).Msg("error sending command to daemon")
+			logger.Error().Str("command", cmd.Name()).Err(err).Msg(constants.FailedToSendCommand)
 
 			return &utils.CommandError{Err: err, Code: 10}
 		}
 
-		logger.Info().Str("command", cmd.Name()).Str("response", res).Msg("successfully processed command")
+		logger.Info().Str("command", cmd.Name()).Str("response", res).Msg(constants.SuccessfullyProcessed)
 
 		return nil
 	},
