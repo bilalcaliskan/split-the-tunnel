@@ -42,23 +42,23 @@ jobs:
         with:
           version: "2022.1.3"
 
-#  codeql:
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        language: [ 'go' ]
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#      - name: Initialize CodeQL
-#        uses: github/codeql-action/init@v3
-#        with:
-#          languages: ${{ matrix.language }}
-#      - name: Autobuild
-#        uses: github/codeql-action/autobuild@v3
-#      - name: Perform CodeQL Analysis
-#        uses: github/codeql-action/analyze@v3
+  codeql:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'go' ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
 
   sonarcloud:
     runs-on: ubuntu-latest
@@ -102,12 +102,12 @@ jobs:
       - name: Build CLi
         run: make -s build-cli
 
-  tag:
+  release:
     runs-on: ubuntu-latest
     needs:
       - lint
       - test
-#      - codeql
+      - codeql
       - staticcheck
       - sonarcloud
       - build
@@ -115,23 +115,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: '0'
+          fetch-depth: 0
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.67.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
-
-  release:
-    runs-on: ubuntu-latest
-    needs:
-      - tag
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set outputs
         id: vars
         run: |

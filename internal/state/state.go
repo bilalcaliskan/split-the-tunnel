@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
+
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +46,7 @@ func (s *State) RemoveEntry(domain string) error {
 	}
 
 	// target entry not found
-	return errors.New("entry not found")
+	return errors.New(constants.EntryNotFound)
 }
 
 func (s *State) GetEntry(domain string) (*RouteEntry, error) {
@@ -54,7 +56,7 @@ func (s *State) GetEntry(domain string) (*RouteEntry, error) {
 		}
 	}
 
-	return nil, errors.New("entry not found")
+	return nil, errors.New(constants.EntryNotFound)
 }
 
 func (s *State) Read(path string) error {

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
+
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +31,7 @@ func ResolveDomain(domain string) ([]string, error) {
 func GetDefaultNonVPNGateway() (string, error) {
 	file, err := os.Open("/proc/net/route")
 	if err != nil {
-		return "", errors.Wrap(err, "failed to open routing info file")
+		return "", errors.Wrap(err, constants.FailedToOpenRoutingInfoFile)
 	}
 	defer file.Close()
 
@@ -62,7 +64,7 @@ func GetDefaultNonVPNGateway() (string, error) {
 	}
 
 	if bestGateway == "" {
-		return "", fmt.Errorf("non-VPN gateway not found")
+		return "", fmt.Errorf(constants.NonVPNGatewayNotFound)
 	}
 
 	return bestGateway, nil
@@ -71,11 +73,11 @@ func GetDefaultNonVPNGateway() (string, error) {
 func parseHexIP(hexStr string) (string, error) {
 	ipBytes, err := hex.DecodeString(hexStr)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode hex string")
+		return "", errors.Wrap(err, constants.FailedToDecodeHex)
 	}
 
 	if len(ipBytes) != 4 {
-		return "", fmt.Errorf("invalid IP length: %d", len(ipBytes))
+		return "", fmt.Errorf(constants.InvalidIpLength, len(ipBytes))
 	}
 
 	// Reverse the byte order (little endian)
