@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net"
 
+	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
+
 	"github.com/pkg/errors"
 )
 
@@ -23,13 +25,13 @@ type DaemonResponse struct {
 func SendCommandToDaemon(socketPath, command string) (string, error) {
 	conn, err := net.Dial("unix", socketPath)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to connect to unix domain socket")
+		return "", errors.Wrap(err, constants.FailedToConnectToUnixDomainSocket)
 	}
 	defer conn.Close()
 
 	_, err = conn.Write([]byte(command + "\n"))
 	if err != nil {
-		return "", errors.Wrap(err, "failed to write to unix domain socket")
+		return "", errors.Wrap(err, constants.FailedToWriteToUnixDomainSocket)
 	}
 
 	buf := make([]byte, 1024)

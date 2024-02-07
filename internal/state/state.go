@@ -14,11 +14,25 @@ type State struct {
 	Entries []*RouteEntry `json:"entries"`
 }
 
+func NewState() *State {
+	return &State{
+		Entries: []*RouteEntry{},
+	}
+}
+
 // RouteEntry is the struct that holds the state of a single route entry
 type RouteEntry struct {
 	Domain     string `json:"domain"`
 	ResolvedIP string `json:"resolvedIP"`
 	Gateway    string `json:"gateway"`
+}
+
+func NewRouteEntry(domain, resolvedIP, gateway string) *RouteEntry {
+	return &RouteEntry{
+		Domain:     domain,
+		ResolvedIP: resolvedIP,
+		Gateway:    gateway,
+	}
 }
 
 // AddEntry adds a new route entry to the state. If the entry already exists, it updates the ResolvedIP.
@@ -33,7 +47,8 @@ func (s *State) AddEntry(entry *RouteEntry) error {
 	}
 
 	s.Entries = append(s.Entries, entry)
-	return nil
+
+	return s.Write("/tmp/state.json")
 }
 
 // RemoveEntry removes a route entry from the state.
@@ -49,14 +64,14 @@ func (s *State) RemoveEntry(domain string) error {
 	return errors.New(constants.EntryNotFound)
 }
 
-func (s *State) GetEntry(domain string) (*RouteEntry, error) {
+func (s *State) GetEntry(domain string) *RouteEntry {
 	for i := range s.Entries {
 		if s.Entries[i].Domain == domain {
-			return s.Entries[i], nil
+			return s.Entries[i]
 		}
 	}
 
-	return nil, errors.New(constants.EntryNotFound)
+	return nil
 }
 
 func (s *State) Read(path string) error {
