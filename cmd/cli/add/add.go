@@ -3,10 +3,11 @@ package add
 import (
 	"fmt"
 
+	"github.com/rs/zerolog"
+
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
 
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
-	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
 	"github.com/spf13/cobra"
 )
 
@@ -28,15 +29,15 @@ to quickly create a Cobra application.`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger := logging.GetLogger()
+		logger := cmd.Context().Value(constants.LoggerKey{}).(zerolog.Logger)
 
-		logger.Info().Any("args", args).Msg("add called")
+		logger.Debug().Any("args", args).Msg("add command called")
 
 		for _, arg := range args {
 			req := fmt.Sprintf("%s %s", cmd.Name(), arg)
 			res, err := utils.SendCommandToDaemon(utils.SocketPath, req)
 			if err != nil {
-				logger.Error().Str("command", req).Err(err).Msg(constants.FailedToSendCommand)
+				logger.Error().Str("command", req).Err(err).Msg(constants.FailedToProcessCommand)
 				continue
 			}
 
