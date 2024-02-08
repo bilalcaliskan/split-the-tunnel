@@ -168,7 +168,7 @@ func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, con
 			if err := writeResponse(&DaemonResponse{
 				Success:  false,
 				Response: "",
-				Error:    errors.New(constants.EntryNotFound).Error(),
+				Error:    errors.Wrap(errors.New(constants.EntryNotFound), constants.FailedToRemoveRouteEntry).Error(),
 			}, conn); err != nil {
 				logger.Error().
 					Err(err).

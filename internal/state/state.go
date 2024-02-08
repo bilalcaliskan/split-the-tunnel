@@ -39,10 +39,12 @@ func NewRouteEntry(domain, resolvedIP, gateway string) *RouteEntry {
 func (s *State) AddEntry(entry *RouteEntry) error {
 	for _, e := range s.Entries {
 		if e.Domain == entry.Domain {
-			if e.ResolvedIP != entry.ResolvedIP {
-				e.ResolvedIP = entry.ResolvedIP
+			if e.ResolvedIP == entry.ResolvedIP {
+				return errors.New(constants.EntryAlreadyExists)
 			}
-			return nil
+
+			e.ResolvedIP = entry.ResolvedIP
+			return s.Write("/tmp/state.json")
 		}
 	}
 
@@ -56,7 +58,7 @@ func (s *State) RemoveEntry(domain string) error {
 	for i, entry := range s.Entries {
 		if entry.Domain == domain {
 			s.Entries = append(s.Entries[:i], s.Entries[i+1:]...)
-			return nil
+			return s.Write("/tmp/state.json")
 		}
 	}
 

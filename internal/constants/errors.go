@@ -22,4 +22,5 @@ const (
 	FailedToCleanupIPC                = "failed to cleanup IPC"
 	FailedToInitializeIPC             = "failed to initialize IPC"
 	FailedToRemoveRouteEntry          = "failed to remove RouteEntry from state"
+	EntryAlreadyExists                = "route entry already exists in state"
 )
