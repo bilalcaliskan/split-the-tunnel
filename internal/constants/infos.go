@@ -7,4 +7,5 @@ const (
 	TermSignalReceived    = "termination signal received"
 	ShuttingDownDaemon    = "shutting down daemon..."
 	AppStarted            = "split-the-tunnel is started!"
+	ProcessCommand        = "processing command"
 )

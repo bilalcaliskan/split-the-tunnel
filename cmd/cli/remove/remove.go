@@ -31,17 +31,27 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmd.Context().Value(constants.LoggerKey{}).(zerolog.Logger)
 
-		logger.Info().Any("args", args).Msg("remove command called")
+		logger.Info().
+			Str("operation", cmd.Name()).
+			Any("args", args).
+			Msg(constants.ProcessCommand)
 
 		for _, arg := range args {
 			req := fmt.Sprintf("%s %s", cmd.Name(), arg)
 			res, err := utils.SendCommandToDaemon(utils.SocketPath, req)
 			if err != nil {
-				logger.Error().Str("command", req).Err(err).Msg(constants.FailedToProcessCommand)
+				logger.Error().
+					Str("command", req).
+					Err(err).
+					Msg(constants.FailedToProcessCommand)
+
 				continue
 			}
 
-			logger.Info().Str("command", req).Str("response", res).Msg(constants.SuccessfullyProcessed)
+			logger.Info().
+				Str("command", req).
+				Str("response", res).
+				Msg(constants.SuccessfullyProcessed)
 		}
 
 		return nil

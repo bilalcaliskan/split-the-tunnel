@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -22,7 +23,9 @@ func ResolveDomain(domain string) ([]string, error) {
 
 	var ipStrings []string
 	for _, ip := range ips {
-		ipStrings = append(ipStrings, ip.String())
+		if ip.To4() != nil {
+			ipStrings = append(ipStrings, ip.String())
+		}
 	}
 
 	return ipStrings, nil
@@ -86,6 +89,21 @@ func parseHexIP(hexStr string) (string, error) {
 	}
 
 	return fmt.Sprintf("%d.%d.%d.%d", ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]), nil
+}
+
+// SlicesEqual checks if two string slices are equal
+func SlicesEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	sort.Strings(a)
+	sort.Strings(b)
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 /*func addRoute(ip, gateway string) error {

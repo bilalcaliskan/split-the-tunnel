@@ -68,7 +68,7 @@ func handleConnection(conn net.Conn, logger zerolog.Logger) {
 		logger.Info().Str("command", command).Msg("received command")
 
 		st := state.NewState()
-		if err := st.Read("/tmp/state.json"); err != nil {
+		if err := st.Read(constants.StateFilePath); err != nil {
 			logger.Error().Err(err).Msg(constants.FailedToReadState)
 			continue
 		}
@@ -111,7 +111,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 	logger = logger.With().Str("operation", "add").Logger()
 
 	for _, domain := range domains {
-		ip, err := utils.ResolveDomain(domain)
+		ips, err := utils.ResolveDomain(domain)
 		if err != nil {
 			if err := writeResponse(&DaemonResponse{
 				Success:  false,
@@ -127,7 +127,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 			continue
 		}
 
-		re := state.NewRouteEntry(domain, ip[0], gw)
+		re := state.NewRouteEntry(domain, gw, ips)
 
 		if err := st.AddEntry(re); err != nil {
 			if err := writeResponse(&DaemonResponse{
@@ -212,7 +212,12 @@ func handleListCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 
 	response.Success = false
 	response.Response = ""
-	response.Error = "a dummy error list command"
+	response.Error = ""
+
+	// print the state
+	for _, entry := range st.Entries {
+		response.Response += fmt.Sprintf("Domain: %s, Gateway: %s, IPs: %v\n", entry.Domain, entry.Gateway, entry.ResolvedIPs)
+	}
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {

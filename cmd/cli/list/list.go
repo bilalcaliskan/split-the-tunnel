@@ -1,6 +1,8 @@
 package list
 
 import (
+	"fmt"
+
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
 	"github.com/rs/zerolog"
@@ -27,7 +29,9 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmd.Context().Value(constants.LoggerKey{}).(zerolog.Logger)
 
-		logger.Debug().Msg("list command called")
+		logger.Info().
+			Str("operation", cmd.Name()).
+			Msg(constants.ProcessCommand)
 
 		res, err := utils.SendCommandToDaemon(utils.SocketPath, cmd.Name())
 		if err != nil {
@@ -36,7 +40,10 @@ to quickly create a Cobra application.`,
 			return &utils.CommandError{Err: err, Code: 10}
 		}
 
-		logger.Info().Str("command", cmd.Name()).Str("response", res).Msg(constants.SuccessfullyProcessed)
+		logger.Info().Str("command", cmd.Name()).Msg(constants.SuccessfullyProcessed)
+
+		fmt.Println("here is your state:")
+		fmt.Print(res)
 
 		return nil
 	},

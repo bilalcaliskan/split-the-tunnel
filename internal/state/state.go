@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/bilalcaliskan/split-the-tunnel/internal/utils"
+
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
 
 	"github.com/pkg/errors"
@@ -22,16 +24,16 @@ func NewState() *State {
 
 // RouteEntry is the struct that holds the state of a single route entry
 type RouteEntry struct {
-	Domain     string `json:"domain"`
-	ResolvedIP string `json:"resolvedIP"`
-	Gateway    string `json:"gateway"`
+	Domain      string   `json:"domain"`
+	Gateway     string   `json:"gateway"`
+	ResolvedIPs []string `json:"resolvedIPs"`
 }
 
-func NewRouteEntry(domain, resolvedIP, gateway string) *RouteEntry {
+func NewRouteEntry(domain, gateway string, resolvedIPs []string) *RouteEntry {
 	return &RouteEntry{
-		Domain:     domain,
-		ResolvedIP: resolvedIP,
-		Gateway:    gateway,
+		Domain:      domain,
+		Gateway:     gateway,
+		ResolvedIPs: resolvedIPs,
 	}
 }
 
@@ -39,18 +41,18 @@ func NewRouteEntry(domain, resolvedIP, gateway string) *RouteEntry {
 func (s *State) AddEntry(entry *RouteEntry) error {
 	for _, e := range s.Entries {
 		if e.Domain == entry.Domain {
-			if e.ResolvedIP == entry.ResolvedIP {
+			if utils.SlicesEqual(e.ResolvedIPs, entry.ResolvedIPs) {
 				return errors.New(constants.EntryAlreadyExists)
 			}
 
-			e.ResolvedIP = entry.ResolvedIP
-			return s.Write("/tmp/state.json")
+			e.ResolvedIPs = entry.ResolvedIPs
+			return s.Write(constants.StateFilePath)
 		}
 	}
 
 	s.Entries = append(s.Entries, entry)
 
-	return s.Write("/tmp/state.json")
+	return s.Write(constants.StateFilePath)
 }
 
 // RemoveEntry removes a route entry from the state.
@@ -58,7 +60,7 @@ func (s *State) RemoveEntry(domain string) error {
 	for i, entry := range s.Entries {
 		if entry.Domain == domain {
 			s.Entries = append(s.Entries[:i], s.Entries[i+1:]...)
-			return s.Write("/tmp/state.json")
+			return s.Write(constants.StateFilePath)
 		}
 	}
 
