@@ -31,7 +31,10 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmd.Context().Value(constants.LoggerKey{}).(zerolog.Logger)
 
-		logger.Debug().Any("args", args).Msg("add command called")
+		logger.Info().
+			Str("operation", cmd.Name()).
+			Any("args", args).
+			Msg(constants.ProcessCommand)
 
 		for _, arg := range args {
 			req := fmt.Sprintf("%s %s", cmd.Name(), arg)
