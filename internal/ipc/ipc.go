@@ -107,6 +107,10 @@ func processCommand(logger zerolog.Logger, command, gateway string, conn net.Con
 		logger = logger.With().Str("operation", "list").Logger()
 
 		handleListCommand(logger, conn, st)
+	case "purge":
+		logger = logger.With().Str("operation", "purge").Logger()
+
+		handlePurgeCommand(logger, conn, st)
 	}
 }
 
@@ -182,6 +186,49 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 				Str("domain", domain).
 				Msg(constants.FailedToWriteToUnixDomainSocket)
 		}
+	}
+}
+
+func handlePurgeCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
+	logger = logger.With().Str("operation", "purge").Logger()
+
+	for _, entry := range st.Entries {
+		for _, ip := range entry.ResolvedIPs {
+			if err := utils.RemoveRoute(ip); err != nil {
+				logger.Error().Err(err).Str("domain", entry.Domain).Str("ip", ip).Msg("failed to remove route from routing table")
+
+				if err := writeResponse(&DaemonResponse{
+					Success:  false,
+					Response: "",
+					Error:    errors.Wrapf(err, "failed to remove route for domain %s from routing table", entry.Domain).Error(),
+				}, conn); err != nil {
+					logger.Error().
+						Err(err).
+						Str("domain", entry.Domain).
+						Msg(constants.FailedToWriteToUnixDomainSocket)
+				}
+
+				continue
+			}
+		}
+
+		logger.Info().Str("domain", entry.Domain).Msg("successfully removed route from routing table")
+	}
+
+	st.Entries = make([]*state.RouteEntry, 0)
+
+	if err := st.Write(constants.StateFilePath); err != nil {
+		logger.Error().Err(err).Msg("failed to write state to file")
+	}
+
+	if err := writeResponse(&DaemonResponse{
+		Success:  true,
+		Response: "purged all routes",
+		Error:    "",
+	}, conn); err != nil {
+		logger.Error().
+			Err(err).
+			Msg(constants.FailedToWriteToUnixDomainSocket)
 	}
 }
 
