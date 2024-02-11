@@ -18,6 +18,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// InitIPC initializes the IPC setup and continuously listens on the given path for incoming connections
 func InitIPC(path string, logger zerolog.Logger) error {
 	// Check and remove the socket file if it already exists
 	if _, err := os.Stat(path); err == nil {
@@ -50,6 +51,7 @@ func InitIPC(path string, logger zerolog.Logger) error {
 	return nil
 }
 
+// handleConnection handles the incoming connection
 func handleConnection(conn net.Conn, logger zerolog.Logger) {
 	defer conn.Close()
 
@@ -84,6 +86,7 @@ func handleConnection(conn net.Conn, logger zerolog.Logger) {
 	}
 }
 
+// processCommand processes the given command and calls the appropriate handler
 func processCommand(logger zerolog.Logger, command, gateway string, conn net.Conn, st *state.State) {
 	parts := strings.Fields(command)
 	if len(parts) == 0 {
@@ -107,6 +110,7 @@ func processCommand(logger zerolog.Logger, command, gateway string, conn net.Con
 	}
 }
 
+// handleAddCommand handles the add command and adds the given domains to the routing table
 func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn net.Conn, st *state.State) {
 	logger = logger.With().Str("operation", "add").Logger()
 
@@ -159,6 +163,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 	}
 }
 
+// handleRemoveCommand removes the given domains from the routing table
 func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, conn net.Conn, st *state.State) {
 	logger = logger.With().Str("operation", "remove").Logger()
 
