@@ -16,19 +16,21 @@ type State struct {
 	Entries []*RouteEntry `json:"entries"`
 }
 
+// NewState creates a new State with an empty list of RouteEntry
 func NewState() *State {
 	return &State{
 		Entries: []*RouteEntry{},
 	}
 }
 
-// RouteEntry is the struct that holds the state of a single route entry
+// RouteEntry is the struct that holds the State of a single route entry
 type RouteEntry struct {
 	Domain      string   `json:"domain"`
 	Gateway     string   `json:"gateway"`
 	ResolvedIPs []string `json:"resolvedIPs"`
 }
 
+// NewRouteEntry creates a new RouteEntry with the given domain, gateway and resolvedIPs
 func NewRouteEntry(domain, gateway string, resolvedIPs []string) *RouteEntry {
 	return &RouteEntry{
 		Domain:      domain,
@@ -37,7 +39,7 @@ func NewRouteEntry(domain, gateway string, resolvedIPs []string) *RouteEntry {
 	}
 }
 
-// AddEntry adds a new route entry to the state. If the entry already exists, it updates the ResolvedIP.
+// AddEntry adds a new RouteEntry to the State. If the entry already exists, it updates the RouteEntry.ResolvedIPs
 func (s *State) AddEntry(entry *RouteEntry) error {
 	for _, e := range s.Entries {
 		if e.Domain == entry.Domain {
@@ -55,7 +57,7 @@ func (s *State) AddEntry(entry *RouteEntry) error {
 	return s.Write(constants.StateFilePath)
 }
 
-// RemoveEntry removes a route entry from the state.
+// RemoveEntry removes a RouteEntry from the State
 func (s *State) RemoveEntry(domain string) error {
 	for i, entry := range s.Entries {
 		if entry.Domain == domain {
@@ -68,6 +70,7 @@ func (s *State) RemoveEntry(domain string) error {
 	return errors.New(constants.EntryNotFound)
 }
 
+// GetEntry returns the RouteEntry for the given domain from the State
 func (s *State) GetEntry(domain string) *RouteEntry {
 	for i := range s.Entries {
 		if s.Entries[i].Domain == domain {
@@ -78,6 +81,7 @@ func (s *State) GetEntry(domain string) *RouteEntry {
 	return nil
 }
 
+// Read reads the State from the given path
 func (s *State) Read(path string) error {
 	// Attempt to get the file status
 	_, err := os.Stat(path)
@@ -100,6 +104,7 @@ func (s *State) Read(path string) error {
 	return err
 }
 
+// Write writes the State to the given path
 func (s *State) Write(path string) error {
 	data, err := json.Marshal(s)
 	if err != nil {

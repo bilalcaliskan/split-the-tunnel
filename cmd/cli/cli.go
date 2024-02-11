@@ -5,6 +5,8 @@ import (
 	"errors"
 	"os"
 
+	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/purge"
+
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
 
@@ -64,4 +66,5 @@ func init() {
 	cliCmd.AddCommand(add.AddCmd)
 	cliCmd.AddCommand(list.ListCmd)
 	cliCmd.AddCommand(remove.RemoveCmd)
+	cliCmd.AddCommand(purge.PurgeCmd)
 }

@@ -9,12 +9,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Cleanup performs any cleanup and shutdown tasks
 func Cleanup(path string) error {
 	// Perform any cleanup and shutdown tasks here
 
 	return os.Remove(path)
 }
 
+// writeResponse writes the response to the connection
 func writeResponse(response *DaemonResponse, conn net.Conn) error {
 	responseJson, err := json.Marshal(response)
 	if err != nil {
