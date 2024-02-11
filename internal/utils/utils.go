@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
@@ -106,11 +107,24 @@ func SlicesEqual(a, b []string) bool {
 	return true
 }
 
-/*func addRoute(ip, gateway string) error {
+// AddRoute adds a new route to the routing table
+func AddRoute(ip, gateway string) error {
 	cmd := exec.Command("sudo", "ip", "route", "add", ip, "via", gateway)
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("failed to add route for %s: %w", ip, err)
+
+	if err := cmd.Run(); err != nil {
+		return errors.Wrap(err, "failed to add route")
 	}
+
 	return nil
-}*/
+}
+
+// RemoveRoute removes a route from the routing table
+func RemoveRoute(ip string) error {
+	cmd := exec.Command("sudo", "ip", "route", "del", ip)
+
+	if err := cmd.Run(); err != nil {
+		return errors.Wrap(err, "failed to remove route")
+	}
+
+	return nil
+}

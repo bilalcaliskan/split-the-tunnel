@@ -102,7 +102,7 @@ func processCommand(logger zerolog.Logger, command, gateway string, conn net.Con
 	case "remove":
 		logger = logger.With().Str("operation", "remove").Logger()
 
-		handleRemoveCommand(logger, gateway, parts[1:], conn, st)
+		handleRemoveCommand(logger, parts[1:], conn, st)
 	case "list":
 		logger = logger.With().Str("operation", "list").Logger()
 
@@ -134,10 +134,12 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 		re := state.NewRouteEntry(domain, gw, ips)
 
 		if err := st.AddEntry(re); err != nil {
+			logger.Error().Err(err).Str("domain", domain).Msg("failed to add route to state")
+
 			if err := writeResponse(&DaemonResponse{
 				Success:  false,
 				Response: "",
-				Error:    errors.Wrap(err, constants.FailedToWriteRouteEntry).Error(),
+				Error:    errors.Wrapf(err, "failed to write RouteEntry to state for domain %s", domain).Error(),
 			}, conn); err != nil {
 				logger.Error().
 					Err(err).
@@ -146,6 +148,26 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 			}
 
 			continue
+		}
+
+		for _, ip := range re.ResolvedIPs {
+			if err := utils.AddRoute(ip, re.Gateway); err != nil {
+				logger.Error().Err(err).Str("domain", domain).Str("ip", ip).Msg("failed to add route to routing table")
+
+				if err := writeResponse(&DaemonResponse{
+					Success:  false,
+					Response: "",
+					Error:    errors.Wrapf(err, "failed to add route for domain %s to routing table", domain).Error(),
+				}, conn); err != nil {
+					logger.Error().
+						Err(err).
+						Str("domain", domain).
+						Msg(constants.FailedToWriteToUnixDomainSocket)
+				}
+
+				continue
+			}
+
 		}
 
 		logger.Info().Str("domain", domain).Msg("successfully added route to routing table")
@@ -164,7 +186,7 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 }
 
 // handleRemoveCommand removes the given domains from the routing table
-func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, conn net.Conn, st *state.State) {
+func handleRemoveCommand(logger zerolog.Logger, domains []string, conn net.Conn, st *state.State) {
 	logger = logger.With().Str("operation", "remove").Logger()
 
 	for _, domain := range domains {
@@ -184,6 +206,8 @@ func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, con
 		}
 
 		if err := st.RemoveEntry(domain); err != nil {
+			logger.Error().Err(err).Str("domain", domain).Msg("failed to remove route from state")
+
 			if err := writeResponse(&DaemonResponse{
 				Success:  false,
 				Response: "",
@@ -195,6 +219,25 @@ func handleRemoveCommand(logger zerolog.Logger, gw string, domains []string, con
 					Msg(constants.FailedToWriteToUnixDomainSocket)
 			}
 			continue
+		}
+
+		for _, ip := range entry.ResolvedIPs {
+			if err := utils.RemoveRoute(ip); err != nil {
+				logger.Error().Err(err).Str("domain", domain).Str("ip", ip).Msg("failed to remove route from routing table")
+
+				if err := writeResponse(&DaemonResponse{
+					Success:  false,
+					Response: "",
+					Error:    errors.Wrapf(err, "failed to remove route for domain %s from routing table", domain).Error(),
+				}, conn); err != nil {
+					logger.Error().
+						Err(err).
+						Str("domain", domain).
+						Msg(constants.FailedToWriteToUnixDomainSocket)
+				}
+
+				continue
+			}
 		}
 
 		logger.Info().Str("domain", domain).Msg("successfully removed route from routing table")
