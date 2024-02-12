@@ -75,19 +75,12 @@ func handleConnection(conn net.Conn, logger zerolog.Logger) {
 			continue
 		}
 
-		// get default gateway
-		gw, err := utils.GetDefaultNonVPNGateway()
-		if err != nil {
-			logger.Error().Err(err).Msg(constants.FailedToGetDefaultGateway)
-			continue
-		}
-
-		processCommand(logger, command, gw, conn, st)
+		processCommand(logger, command, conn, st)
 	}
 }
 
 // processCommand processes the given command and calls the appropriate handler
-func processCommand(logger zerolog.Logger, command, gateway string, conn net.Conn, st *state.State) {
+func processCommand(logger zerolog.Logger, command string, conn net.Conn, st *state.State) {
 	parts := strings.Fields(command)
 	if len(parts) == 0 {
 		logger.Error().Msg(constants.EmptyCommandReceived)
@@ -98,7 +91,14 @@ func processCommand(logger zerolog.Logger, command, gateway string, conn net.Con
 	case "add":
 		logger = logger.With().Str("operation", "add").Logger()
 
-		handleAddCommand(logger, gateway, parts[1:], conn, st)
+		// get default gateway
+		gw, err := utils.GetDefaultNonVPNGateway()
+		if err != nil {
+			logger.Error().Err(err).Msg(constants.FailedToGetDefaultGateway)
+			return
+		}
+
+		handleAddCommand(logger, gw, parts[1:], conn, st)
 	case "remove":
 		logger = logger.With().Str("operation", "remove").Logger()
 
@@ -318,10 +318,6 @@ func handleRemoveCommand(logger zerolog.Logger, domains []string, conn net.Conn,
 
 func handleListCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 	response := new(DaemonResponse)
-
-	response.Success = false
-	response.Response = ""
-	response.Error = ""
 
 	// print the state
 	for _, entry := range st.Entries {
