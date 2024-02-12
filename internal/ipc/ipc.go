@@ -192,6 +192,20 @@ func handleAddCommand(logger zerolog.Logger, gw string, domains []string, conn n
 func handlePurgeCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 	logger = logger.With().Str("operation", "purge").Logger()
 
+	if len(st.Entries) == 0 {
+		if err := writeResponse(&DaemonResponse{
+			Success:  false,
+			Response: "",
+			Error:    errors.New(constants.NoRoutesToPurge).Error(),
+		}, conn); err != nil {
+			logger.Error().
+				Err(err).
+				Msg(constants.FailedToWriteToUnixDomainSocket)
+		}
+
+		return
+	}
+
 	for _, entry := range st.Entries {
 		for _, ip := range entry.ResolvedIPs {
 			if err := utils.RemoveRoute(ip); err != nil {
