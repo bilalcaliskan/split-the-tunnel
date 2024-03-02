@@ -58,10 +58,9 @@ var daemonCmd = &cobra.Command{
 
 		logger.Info().Str("socket", socketPath).Msg(constants.DaemonRunning)
 
-		// Wait for termination signal
-		<-sigs
-
-		logger.Info().Msg(constants.TermSignalReceived)
+		// Wait for termination signal to gracefully shut down the daemon
+		s := <-sigs
+		logger.Info().Any("signal", s.String()).Msg(constants.TermSignalReceived)
 		logger.Info().Msg(constants.ShuttingDownDaemon)
 
 		return nil

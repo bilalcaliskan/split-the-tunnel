@@ -45,17 +45,10 @@ var (
 
 func main() {
 	if err := cliCmd.Execute(); err != nil {
-		// extract the response code from the error
-		var resCode int
 		var cmdErr *utils.CommandError
 		if errors.As(err, &cmdErr) {
-			resCode = cmdErr.Code
+			os.Exit(cmdErr.Code)
 		}
-
-		if resCode != 0 {
-			os.Exit(resCode)
-		}
-
 		os.Exit(1)
 	}
 }

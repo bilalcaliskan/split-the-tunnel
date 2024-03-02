@@ -2,6 +2,7 @@ package list
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
@@ -42,8 +43,14 @@ to quickly create a Cobra application.`,
 
 		logger.Info().Str("command", cmd.Name()).Msg(constants.SuccessfullyProcessed)
 
-		fmt.Println("here is your state:")
-		fmt.Print(res)
+		stateMsg := fmt.Sprintf(`|---------------------------------------------------------------------|
+|   here is your state:                                               |
+|                                                                     |
+|   %s   |
+|---------------------------------------------------------------------|
+`, strings.TrimSpace(res))
+
+		fmt.Print(stateMsg)
 
 		return nil
 	},
