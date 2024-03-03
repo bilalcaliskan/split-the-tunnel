@@ -1,8 +1,11 @@
 package list
 
 import (
-	"fmt"
+	"os"
 	"strings"
+
+	"github.com/bilalcaliskan/split-the-tunnel/internal/state"
+	"github.com/olekukonko/tablewriter"
 
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
@@ -43,14 +46,26 @@ to quickly create a Cobra application.`,
 
 		logger.Info().Str("command", cmd.Name()).Msg(constants.SuccessfullyProcessed)
 
-		stateMsg := fmt.Sprintf(`|---------------------------------------------------------------------|
-|   here is your state:                                               |
-|                                                                     |
-|   %s   |
-|---------------------------------------------------------------------|
-`, strings.TrimSpace(res))
+		domains, err := state.FromStringSlice(res)
+		if err != nil {
+			logger.Error().Err(err).Msg("failed to parse response")
 
-		fmt.Print(stateMsg)
+			return &utils.CommandError{Err: err, Code: 11}
+		}
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Domain", "Gateway", "IPs"})
+		// Set the Alignment for each column to center
+		table.SetColumnAlignment([]int{tablewriter.ALIGN_CENTER, tablewriter.ALIGN_CENTER, tablewriter.ALIGN_CENTER})
+		table.SetBorder(true)  // Set to false if you do not want borders
+		table.SetRowLine(true) // Enable row line for more clarity
+		table.SetAlignment(tablewriter.ALIGN_CENTER)
+
+		for _, info := range domains {
+			table.Append([]string{info.Domain, info.Gateway, strings.Join(info.ResolvedIPs, "\n")})
+		}
+
+		table.Render() // Send output
 
 		return nil
 	},

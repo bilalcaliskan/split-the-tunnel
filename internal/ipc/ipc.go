@@ -206,6 +206,7 @@ func handlePurgeCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 		return
 	}
 
+	// TODO: in each iteration, we should somehow mark routing table entries
 	for _, entry := range st.Entries {
 		for _, ip := range entry.ResolvedIPs {
 			if err := utils.RemoveRoute(ip); err != nil {
@@ -319,10 +320,25 @@ func handleRemoveCommand(logger zerolog.Logger, domains []string, conn net.Conn,
 func handleListCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 	response := new(DaemonResponse)
 
-	// print the state
-	for _, entry := range st.Entries {
-		response.Response += fmt.Sprintf("Domain: %s, Gateway: %s, IPs: %v\n", entry.Domain, entry.Gateway, entry.ResolvedIPs)
+	//var routeEntries []state.RouteEntry
+	//
+	//// print the state
+	//for _, entry := range st.Entries {
+	//	//response.Response += fmt.Sprintf("Domain: %s, Gateway: %s, IPs: %v\n", entry.Domain, entry.Gateway, entry.ResolvedIPs)
+	//	routeEntries = append(routeEntries, *entry)
+	//}
+
+	str, err := state.ToStringSlice(st.Entries)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Msg(constants.FailedToMarshalResponse)
+		return
 	}
+
+	fmt.Println(str)
+
+	response.Response = str
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
