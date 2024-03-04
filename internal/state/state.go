@@ -2,7 +2,10 @@ package state
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+
+	"github.com/rs/zerolog"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/utils"
 
@@ -14,12 +17,14 @@ import (
 // State is the struct that holds the state of the application
 type State struct {
 	Entries []*RouteEntry `json:"entries"`
+	logger  zerolog.Logger
 }
 
 // NewState creates a new State with an empty list of RouteEntry
-func NewState() *State {
+func NewState(logger zerolog.Logger) *State {
 	return &State{
 		Entries: []*RouteEntry{},
+		logger:  logger,
 	}
 }
 
@@ -36,6 +41,65 @@ func NewRouteEntry(domain, gateway string, resolvedIPs []string) *RouteEntry {
 		Domain:      domain,
 		Gateway:     gateway,
 		ResolvedIPs: resolvedIPs,
+	}
+}
+
+func (s *State) CheckIPChanges() error {
+	if len(s.Entries) == 0 {
+		s.logger.Info().
+			Str("job", "ip-change").
+			Msg("no entries found in the state, skipping ip check")
+		return nil
+	}
+
+	if applyNeeded := s.updateEntries(); applyNeeded {
+		s.logger.Info().
+			Str("job", "ip-change").
+			Msg("ip changes detected, applying internal state")
+		return s.Write(constants.StateFilePath)
+	}
+
+	s.logger.Info().
+		Str("job", "ip-change").
+		Msg("no change, skipping state update")
+
+	return nil
+}
+
+func (s *State) updateEntries() bool {
+	var applyNeeded bool
+	for _, entry := range s.Entries {
+		ipList, err := utils.ResolveDomain(entry.Domain)
+		if err != nil {
+			s.logger.Error().Err(err).Str("domain", entry.Domain).Msg("failed to resolve domain")
+			continue
+		}
+
+		if !utils.SlicesEqual(ipList, entry.ResolvedIPs) {
+			s.logger.Info().Str("domain", entry.Domain).Msg("ip changes detected, applying changes to the routing table")
+			s.removeOldRoutes(entry)
+			entry.ResolvedIPs = ipList
+			applyNeeded = true
+			s.addNewRoutes(entry)
+		}
+	}
+
+	return applyNeeded
+}
+
+func (s *State) removeOldRoutes(entry *RouteEntry) {
+	for _, ip := range entry.ResolvedIPs {
+		if err := utils.RemoveRoute(ip); err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+func (s *State) addNewRoutes(entry *RouteEntry) {
+	for _, ip := range entry.ResolvedIPs {
+		if err := utils.AddRoute(ip, entry.Gateway); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -81,21 +145,21 @@ func (s *State) GetEntry(domain string) *RouteEntry {
 	return nil
 }
 
-// Read reads the State from the given path
-func (s *State) Read(path string) error {
+// Reload reads the State from the given path
+func (s *State) Reload() error {
 	// Attempt to get the file status
-	_, err := os.Stat(path)
+	var _, err = os.Stat(constants.StateFilePath)
 
 	if err != nil {
 		if os.IsNotExist(err) {
 			// File does not exist, create an empty state and write to new file
-			return s.Write(path)
+			return s.Write(constants.StateFilePath)
 		}
 		// Some other error occurred
 		return err
 	}
 
-	content, err := os.ReadFile(path)
+	content, err := os.ReadFile(constants.StateFilePath)
 	if err != nil {
 		return err
 	}

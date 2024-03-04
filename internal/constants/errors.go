@@ -8,7 +8,7 @@ const (
 	FileDoesNotExist                  = "file does not exist"
 	NoArgumentsProvided               = "no arguments provided"
 	FailedToReadFromIPC               = "failed to read from IPC connection"
-	FailedToReadState                 = "failed to read state"
+	FailedToReloadState               = "failed to reload state"
 	FailedToGetDefaultGateway         = "failed to get default gateway"
 	EmptyCommandReceived              = "empty command received"
 	FailedToResolveDomain             = "failed to resolve domain"

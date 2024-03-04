@@ -19,7 +19,9 @@ import (
 )
 
 // InitIPC initializes the IPC setup and continuously listens on the given path for incoming connections
-func InitIPC(path string, logger zerolog.Logger) error {
+func InitIPC(st *state.State, path string, logger zerolog.Logger) error {
+	logger = logger.With().Str("job", "ipc").Logger()
+
 	// Check and remove the socket file if it already exists
 	if _, err := os.Stat(path); err == nil {
 		if err := os.Remove(path); err != nil {
@@ -44,7 +46,7 @@ func InitIPC(path string, logger zerolog.Logger) error {
 			}
 
 			// Handle the connection in a new goroutine
-			go handleConnection(conn, logger)
+			go handleConnection(st, conn, logger)
 		}
 	}()
 
@@ -52,7 +54,7 @@ func InitIPC(path string, logger zerolog.Logger) error {
 }
 
 // handleConnection handles the incoming connection
-func handleConnection(conn net.Conn, logger zerolog.Logger) {
+func handleConnection(st *state.State, conn net.Conn, logger zerolog.Logger) {
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
@@ -69,9 +71,8 @@ func handleConnection(conn net.Conn, logger zerolog.Logger) {
 		command := strings.TrimSpace(message)
 		logger.Info().Str("command", command).Msg("received command")
 
-		st := state.NewState()
-		if err := st.Read(constants.StateFilePath); err != nil {
-			logger.Error().Err(err).Msg(constants.FailedToReadState)
+		if err := st.Reload(); err != nil {
+			logger.Error().Err(err).Msg(constants.FailedToReloadState)
 			continue
 		}
 
@@ -206,6 +207,7 @@ func handlePurgeCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 		return
 	}
 
+	// TODO: in each iteration, we should somehow mark routing table entries
 	for _, entry := range st.Entries {
 		for _, ip := range entry.ResolvedIPs {
 			if err := utils.RemoveRoute(ip); err != nil {
@@ -319,11 +321,15 @@ func handleRemoveCommand(logger zerolog.Logger, domains []string, conn net.Conn,
 func handleListCommand(logger zerolog.Logger, conn net.Conn, st *state.State) {
 	response := new(DaemonResponse)
 
-	// print the state
-	for _, entry := range st.Entries {
-		response.Response += fmt.Sprintf("Domain: %s, Gateway: %s, IPs: %v\n", entry.Domain, entry.Gateway, entry.ResolvedIPs)
+	str, err := state.ToStringSlice(st.Entries)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Msg(constants.FailedToMarshalResponse)
+		return
 	}
 
+	response.Response = str
 	responseJson, err := json.Marshal(response)
 	if err != nil {
 		logger.Error().
