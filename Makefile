@@ -96,18 +96,20 @@ test-coverage: test
 	open cover.html
 
 .PHONY: build-daemon
-build: vendor
+build-daemon: vendor
 	$(info building daemon binary...)
-	go build -o bin/split-the-tunnel cmd/daemon/daemon.go || (echo an error while building daemon binary, exiting!; sh -c 'exit 1';)
+	go build -o .bin/split-the-tunnel cmd/daemon/daemon.go || (echo an error while building daemon binary, exiting!; sh -c 'exit 1';)
 
 .PHONY: build-cli
-build: vendor
+build-cli: vendor
 	$(info building cli binary...)
-	go build -o bin/stt-cli cmd/cli/cli.go || (echo an error while building cli binary, exiting!; sh -c 'exit 1';)
+	go build -o ./.bin/stt-cli cmd/cli/cli.go || (echo an error while building cli binary, exiting!; sh -c 'exit 1';)
 
-.PHONY: run
-run: vendor
-	go run main.go $(DEFAULT_GO_RUN_ARGS)
+.PHONY: run-daemon
+run-daemon: build-daemon
+	$(info running daemon...)
+	chmod +x ./.bin/split-the-tunnel
+	sudo ./.bin/split-the-tunnel $(DEFAULT_GO_RUN_ARGS)
 
 .PHONY: prepare-initial-project
 GITHUB_USERNAME ?= $(shell read -p "Your Github username(ex: bilalcaliskan): " github_username; echo $$github_username)
@@ -121,3 +123,8 @@ prepare-initial-project:
 .PHONY: generate-mocks
 generate-mocks: mockery-install tidy vendor
 	$(LOCAL_BIN)/mockery || (echo mockery returned an error, exiting!; sh -c 'exit 1';)
+
+.PHONY: release-daemon
+release-daemon: build-daemon
+	chmod +x bin/split-the-tunnel
+	sudo cp bin/split-the-tunnel /usr/local/bin/split-the-tunnel
