@@ -26,7 +26,7 @@ var (
 
 func init() {
 	opts = options.GetRootOptions()
-	opts.InitFlags(daemonCmd)
+	panic(opts.InitFlags(daemonCmd))
 }
 
 // daemonCmd represents the base command when called without any subcommands
