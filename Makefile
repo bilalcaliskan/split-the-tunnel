@@ -111,6 +111,12 @@ run-daemon: build-daemon
 	chmod +x ./.bin/split-the-tunnel
 	sudo ./.bin/split-the-tunnel $(DEFAULT_GO_RUN_ARGS)
 
+.PHONY: run-cli
+run-cli: build-cli
+	$(info running cli...)
+	chmod +x ./.bin/stt-cli
+	sudo ./.bin/stt-cli $(DEFAULT_GO_RUN_ARGS)
+
 .PHONY: prepare-initial-project
 GITHUB_USERNAME ?= $(shell read -p "Your Github username(ex: bilalcaliskan): " github_username; echo $$github_username)
 PROJECT_NAME ?= $(shell read -p "'Kebab-cased' Project Name(ex: golang-cli-template): " project_name; echo $$project_name)

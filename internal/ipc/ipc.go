@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"strings"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
@@ -19,18 +18,18 @@ import (
 )
 
 // InitIPC initializes the IPC setup and continuously listens on the given path for incoming connections
-func InitIPC(st *state.State, path string, logger zerolog.Logger) error {
+func InitIPC(st *state.State, socketPath string, logger zerolog.Logger) error {
 	logger = logger.With().Str("job", "ipc").Logger()
 
 	// Check and remove the socket file if it already exists
-	if _, err := os.Stat(path); err == nil {
-		if err := os.Remove(path); err != nil {
-			return err
-		}
-	}
+	//if _, err := os.Stat(opts.SocketPath); err == nil {
+	//	if err := os.Remove(opts.SocketPath); err != nil {
+	//		return err
+	//	}
+	//}
 
 	// Listen on the UNIX domain socket
-	listener, err := net.Listen("unix", path)
+	listener, err := net.Listen("unix", socketPath)
 	if err != nil {
 		return err
 	}

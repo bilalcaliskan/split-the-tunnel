@@ -30,12 +30,13 @@ to quickly create a Cobra application.`,
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := cmd.Context().Value(constants.LoggerKey{}).(zerolog.Logger)
+		socketPath := cmd.Context().Value(constants.SocketPathKey{}).(string)
 
 		logger.Info().
 			Str("operation", cmd.Name()).
 			Msg(constants.ProcessCommand)
 
-		res, err := utils.SendCommandToDaemon(utils.SocketPath, cmd.Name())
+		res, err := utils.SendCommandToDaemon(socketPath, cmd.Name())
 		if err != nil {
 			logger.Error().Str("command", cmd.Name()).Err(err).Msg(constants.FailedToProcessCommand)
 

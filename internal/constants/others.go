@@ -4,4 +4,7 @@ const (
 	StateFilePath = "/tmp/state.json"
 )
 
-type LoggerKey struct{}
+type (
+	LoggerKey     struct{}
+	SocketPathKey struct{}
+)

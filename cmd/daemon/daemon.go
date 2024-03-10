@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/state"
 
@@ -17,8 +20,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const socketPath = "/tmp/mydaemon.sock"
-
 var (
 	opts *options.RootOptions
 	ver  = version.Get()
@@ -26,7 +27,9 @@ var (
 
 func init() {
 	opts = options.GetRootOptions()
-	opts.InitFlags(daemonCmd)
+	if err := opts.InitFlags(daemonCmd); err != nil {
+		panic(errors.Wrap(err, "failed to initialize flags"))
+	}
 }
 
 // daemonCmd represents the base command when called without any subcommands
@@ -36,6 +39,16 @@ var daemonCmd = &cobra.Command{
 	Long:    ``,
 	Version: ver.GitVersion,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := opts.ReadConfig(); err != nil {
+			return errors.Wrap(err, "failed to read config")
+		}
+
+		fmt.Println(opts)
+
+		if err := os.MkdirAll(opts.Workspace, 0755); err != nil {
+			return errors.Wrap(err, "failed to create workspace directory")
+		}
+
 		logger := logging.GetLogger().With().Str("job", "main").Logger()
 		logger.Info().Str("appVersion", ver.GitVersion).Str("goVersion", ver.GoVersion).Str("goOS", ver.GoOs).
 			Str("goArch", ver.GoArch).Str("gitCommit", ver.GitCommit).Str("buildDate", ver.BuildDate).
@@ -48,20 +61,20 @@ var daemonCmd = &cobra.Command{
 		st := state.NewState(logger)
 
 		// Initialize IPC mechanism
-		if err := ipc.InitIPC(st, socketPath, logger); err != nil {
+		if err := ipc.InitIPC(st, opts.SocketPath, logger); err != nil {
 			logger.Error().Err(err).Msg(constants.FailedToInitializeIPC)
 			return err
 		}
 
-		logger.Info().Str("socket", socketPath).Msg(constants.IPCInitialized)
+		logger.Info().Str("socket", opts.SocketPath).Msg(constants.IPCInitialized)
 
 		defer func() {
-			if err := ipc.Cleanup(socketPath); err != nil {
+			if err := ipc.Cleanup(opts.SocketPath); err != nil {
 				logger.Error().Err(err).Msg(constants.FailedToCleanupIPC)
 			}
 		}()
 
-		logger.Info().Str("socket", socketPath).Msg(constants.DaemonRunning)
+		logger.Info().Str("socket", opts.SocketPath).Msg(constants.DaemonRunning)
 
 		go func() {
 			// Create a ticker that fires every 5 minutes
