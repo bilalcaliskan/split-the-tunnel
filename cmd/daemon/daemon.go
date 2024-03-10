@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/state"
 
@@ -26,7 +29,9 @@ var (
 
 func init() {
 	opts = options.GetRootOptions()
-	panic(opts.InitFlags(daemonCmd))
+	if err := opts.InitFlags(daemonCmd); err != nil {
+		panic(errors.Wrap(err, "failed to initialize flags"))
+	}
 }
 
 // daemonCmd represents the base command when called without any subcommands
@@ -36,6 +41,8 @@ var daemonCmd = &cobra.Command{
 	Long:    ``,
 	Version: ver.GitVersion,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Println(opts)
+
 		logger := logging.GetLogger().With().Str("job", "main").Logger()
 		logger.Info().Str("appVersion", ver.GitVersion).Str("goVersion", ver.GoVersion).Str("goOS", ver.GoOs).
 			Str("goArch", ver.GoArch).Str("gitCommit", ver.GitCommit).Str("buildDate", ver.BuildDate).
