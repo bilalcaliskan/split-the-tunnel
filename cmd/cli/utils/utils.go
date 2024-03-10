@@ -9,8 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const SocketPath = "/tmp/mydaemon.sock"
-
 var (
 	ErrNoArgs      = errors.New("no arguments provided")
 	ErrTooManyArgs = errors.New("too many arguments provided")

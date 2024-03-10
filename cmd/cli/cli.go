@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/purge"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
 	"github.com/bilalcaliskan/split-the-tunnel/internal/logging"
+	"github.com/pkg/errors"
 
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/add"
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/list"
@@ -20,9 +21,11 @@ import (
 )
 
 var (
-	verbose bool
-	ver     = version.Get()
-	cliCmd  = &cobra.Command{
+	verbose    bool
+	socketFile string
+	workspace  string
+	ver        = version.Get()
+	cliCmd     = &cobra.Command{
 		Use:     "stt-cli",
 		Short:   "",
 		Long:    ``,
@@ -38,6 +41,9 @@ var (
 				logger.Debug().Str("foo", "bar").Msg("this is a dummy log")
 			}
 
+			socketPath := filepath.Join(workspace, socketFile)
+
+			cmd.SetContext(context.WithValue(cmd.Context(), constants.SocketPathKey{}, socketPath))
 			cmd.SetContext(context.WithValue(cmd.Context(), constants.LoggerKey{}, logger))
 		},
 	}
@@ -54,6 +60,13 @@ func main() {
 }
 
 func init() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(errors.Wrap(err, "failed to get user home directory"))
+	}
+
+	cliCmd.PersistentFlags().StringVarP(&workspace, "workspace", "w", filepath.Join(homeDir, ".split-the-tunnel"), "workspace directory path")
+	cliCmd.PersistentFlags().StringVarP(&socketFile, "socket-file", "s", "ipc.sock", "unix domain socket file in workspace")
 	cliCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose mode")
 
 	cliCmd.AddCommand(add.AddCmd)
