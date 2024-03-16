@@ -21,11 +21,10 @@ import (
 )
 
 var (
-	verbose    bool
-	socketFile string
-	workspace  string
-	ver        = version.Get()
-	cliCmd     = &cobra.Command{
+	verbose   bool
+	workspace string
+	ver       = version.Get()
+	cliCmd    = &cobra.Command{
 		Use:     "stt-cli",
 		Short:   "",
 		Long:    ``,
@@ -41,10 +40,8 @@ var (
 				logger.Debug().Str("foo", "bar").Msg("this is a dummy log")
 			}
 
-			socketPath := filepath.Join(workspace, socketFile)
-
-			cmd.SetContext(context.WithValue(cmd.Context(), constants.SocketPathKey{}, socketPath))
 			cmd.SetContext(context.WithValue(cmd.Context(), constants.LoggerKey{}, logger))
+			cmd.SetContext(context.WithValue(cmd.Context(), constants.SocketPathKey{}, filepath.Join(workspace, constants.SocketFileName)))
 		},
 	}
 )
@@ -66,7 +63,6 @@ func init() {
 	}
 
 	cliCmd.PersistentFlags().StringVarP(&workspace, "workspace", "w", filepath.Join(homeDir, ".split-the-tunnel"), "workspace directory path")
-	cliCmd.PersistentFlags().StringVarP(&socketFile, "socket-file", "s", "ipc.sock", "unix domain socket file in workspace")
 	cliCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose mode")
 
 	cliCmd.AddCommand(add.AddCmd)
