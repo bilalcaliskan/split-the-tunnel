@@ -7,6 +7,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/pkg/errors"
 
 	"github.com/bilalcaliskan/split-the-tunnel/internal/state"
@@ -39,15 +41,28 @@ var daemonCmd = &cobra.Command{
 	Long:    ``,
 	Version: ver.GitVersion,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		//opts := options.GetRootOptions()
+		//if err := opts.InitFlags(cmd); err != nil {
+		//	panic(errors.Wrap(err, "failed to initialize flags"))
+		//}
+
+		if err := os.MkdirAll(opts.Workspace, 0755); err != nil {
+			return errors.Wrap(err, "failed to create workspace directory")
+		}
+
+		//if err := viper.BindPFlags(cmd.Flags()); err != nil {
+		//	return errors.Wrap(err, "failed to bind flags")
+		//}
+		//opts = options.GetRootOptions()
 		if err := opts.ReadConfig(); err != nil {
 			return errors.Wrap(err, "failed to read config")
 		}
 
 		fmt.Println(opts)
 
-		if err := os.MkdirAll(opts.Workspace, 0755); err != nil {
-			return errors.Wrap(err, "failed to create workspace directory")
-		}
+		fmt.Println("dns_servers:", viper.GetString("dns_servers"))
+		fmt.Println("check_interval_min:", viper.GetInt("check_interval_min"))
+		fmt.Println("verbose:", viper.GetBool("verbose"))
 
 		logger := logging.GetLogger().With().Str("job", "main").Logger()
 		logger.Info().Str("appVersion", ver.GitVersion).Str("goVersion", ver.GoVersion).Str("goOS", ver.GoOs).

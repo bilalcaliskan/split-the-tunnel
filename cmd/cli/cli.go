@@ -41,10 +41,8 @@ var (
 				logger.Debug().Str("foo", "bar").Msg("this is a dummy log")
 			}
 
-			socketPath := filepath.Join(workspace, socketFile)
-
-			cmd.SetContext(context.WithValue(cmd.Context(), constants.SocketPathKey{}, socketPath))
 			cmd.SetContext(context.WithValue(cmd.Context(), constants.LoggerKey{}, logger))
+			cmd.SetContext(context.WithValue(cmd.Context(), constants.SocketPathKey{}, filepath.Join(workspace, socketFile)))
 		},
 	}
 )
