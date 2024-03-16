@@ -1,7 +1,8 @@
 package constants
 
 const (
-	StateFilePath = "/tmp/state.json"
+	StateFileName  = "state.json"
+	SocketFileName = "ipc.sock"
 )
 
 type (

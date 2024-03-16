@@ -18,13 +18,15 @@ import (
 type State struct {
 	Entries []*RouteEntry `json:"entries"`
 	logger  zerolog.Logger
+	path    string
 }
 
 // NewState creates a new State with an empty list of RouteEntry
-func NewState(logger zerolog.Logger) *State {
+func NewState(logger zerolog.Logger, path string) *State {
 	return &State{
-		Entries: []*RouteEntry{},
-		logger:  logger,
+		[]*RouteEntry{},
+		logger,
+		path,
 	}
 }
 
@@ -56,7 +58,7 @@ func (s *State) CheckIPChanges() error {
 		s.logger.Info().
 			Str("job", "ip-change").
 			Msg("ip changes detected, applying internal state")
-		return s.Write(constants.StateFilePath)
+		return s.Write()
 	}
 
 	s.logger.Info().
@@ -112,13 +114,13 @@ func (s *State) AddEntry(entry *RouteEntry) error {
 			}
 
 			e.ResolvedIPs = entry.ResolvedIPs
-			return s.Write(constants.StateFilePath)
+			return s.Write()
 		}
 	}
 
 	s.Entries = append(s.Entries, entry)
 
-	return s.Write(constants.StateFilePath)
+	return s.Write()
 }
 
 // RemoveEntry removes a RouteEntry from the State
@@ -126,7 +128,7 @@ func (s *State) RemoveEntry(domain string) error {
 	for i, entry := range s.Entries {
 		if entry.Domain == domain {
 			s.Entries = append(s.Entries[:i], s.Entries[i+1:]...)
-			return s.Write(constants.StateFilePath)
+			return s.Write()
 		}
 	}
 
@@ -148,18 +150,16 @@ func (s *State) GetEntry(domain string) *RouteEntry {
 // Reload reads the State from the given path
 func (s *State) Reload() error {
 	// Attempt to get the file status
-	var _, err = os.Stat(constants.StateFilePath)
-
-	if err != nil {
+	if _, err := os.Stat(s.path); err != nil {
 		if os.IsNotExist(err) {
 			// File does not exist, create an empty state and write to new file
-			return s.Write(constants.StateFilePath)
+			return s.Write()
 		}
 		// Some other error occurred
 		return err
 	}
 
-	content, err := os.ReadFile(constants.StateFilePath)
+	content, err := os.ReadFile(s.path)
 	if err != nil {
 		return err
 	}
@@ -169,11 +169,11 @@ func (s *State) Reload() error {
 }
 
 // Write writes the State to the given path
-func (s *State) Write(path string) error {
+func (s *State) Write() error {
 	data, err := json.Marshal(s)
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(s.path, data, 0644)
 }
