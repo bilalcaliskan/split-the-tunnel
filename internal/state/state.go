@@ -48,22 +48,16 @@ func NewRouteEntry(domain, gateway string, resolvedIPs []string) *RouteEntry {
 
 func (s *State) CheckIPChanges() error {
 	if len(s.Entries) == 0 {
-		s.logger.Info().
-			Str("job", "ip-change").
-			Msg("no entries found in the state, skipping ip check")
+		s.logger.Info().Msg("no entries found in the state, skipping ip check")
 		return nil
 	}
 
 	if applyNeeded := s.updateEntries(); applyNeeded {
-		s.logger.Info().
-			Str("job", "ip-change").
-			Msg("ip changes detected, applying internal state")
+		s.logger.Info().Msg("ip changes detected, applying internal state")
 		return s.Write()
 	}
 
-	s.logger.Info().
-		Str("job", "ip-change").
-		Msg("no change, skipping state update")
+	s.logger.Info().Msg("no change, skipping state update")
 
 	return nil
 }

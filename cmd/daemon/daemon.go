@@ -49,7 +49,7 @@ var (
 
 			fmt.Println(opts)
 
-			logger := logging.GetLogger().With().Str("job", "main").Logger()
+			logger := logging.GetLogger().With().Str("job", constants.JobMain).Logger()
 			logger.Info().Str("appVersion", ver.GitVersion).Str("goVersion", ver.GoVersion).Str("goOS", ver.GoOs).
 				Str("goArch", ver.GoArch).Str("gitCommit", ver.GitCommit).Str("buildDate", ver.BuildDate).
 				Msg(constants.AppStarted)
@@ -65,7 +65,7 @@ var (
 			logger.Info().Str("socket", opts.SocketPath).Msg(constants.IPCInitialized)
 
 			defer func() {
-				logger := logger.With().Str("job", "cleanup").Logger()
+				logger := logger.With().Str("job", constants.JobCleanup).Logger()
 				logger.Info().Msg(constants.CleaningUpIPC)
 				if err := ipc.Cleanup(opts.SocketPath); err != nil {
 					logger.Error().Err(err).Msg(constants.FailedToCleanupIPC)
@@ -77,7 +77,7 @@ var (
 			go func() {
 				// Create a ticker that fires every 5 minutes
 				ticker := time.NewTicker(time.Duration(int64(opts.CheckIntervalMin)) * time.Minute)
-				logger := logger.With().Str("job", "ip-change-check").Logger()
+				logger := logger.With().Str("job", constants.JobIpChangeCheck).Logger()
 
 				for range ticker.C {
 					if <-ticker.C; true {
