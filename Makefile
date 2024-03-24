@@ -6,6 +6,12 @@ DEFAULT_GO_RUN_ARGS ?= ""
 GOLANGCI_LINT_VERSION := latest
 REVIVE_VERSION := v1.3.4
 MOCKERY_VERSION := v2.39.1
+# Variables
+PROTO_DIR := ./api/proto
+GO_PROTO_DIR := ./pkg/pb
+PROTO_FILES := $(wildcard $(PROTO_DIR)/*.proto)
+GO_OUT_OPTS := "paths=source_relative"
+PROTOC_VERSION := latest
 
 
 .PHONY: all
@@ -23,7 +29,7 @@ pre-commit-setup:
 	pre-commit install -c build/ci/.pre-commit-config.yaml
 
 .PHONY: tools
-tools:  mockery-install golangci-lint-install revive-install vendor
+tools:  mockery-install golangci-lint-install revive-install protoc_install vendor
 
 .PHONY: mockery-install
 mockery-install:
@@ -36,6 +42,12 @@ golangci-lint-install:
 .PHONY: revive-install
 revive-install:
 	GOBIN=$(LOCAL_BIN) go install github.com/mgechev/revive@$(REVIVE_VERSION)
+
+# Ensure the necessary Go packages are installed
+.PHONY: protoc_install
+protoc_install:
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_VERSION)
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_VERSION)
 
 .PHONY: lint
 lint: tools run-lint
@@ -129,6 +141,19 @@ prepare-initial-project:
 .PHONY: generate-mocks
 generate-mocks: mockery-install tidy vendor
 	$(LOCAL_BIN)/mockery || (echo mockery returned an error, exiting!; sh -c 'exit 1';)
+
+.PHONY: protogen
+protogen: protoc_install
+	protoc --proto_path=$(PROTO_DIR) \
+		--go_out=$(GO_OUT_OPTS):$(GO_PROTO_DIR) \
+		--go-grpc_out=$(GO_OUT_OPTS):$(GO_PROTO_DIR) \
+		$(PROTO_FILES)
+
+
+# Clean up generated files
+.PHONY: protoclean
+protoclean:
+	rm -f $(GO_PROTO_DIR)/*.go
 
 .PHONY: release-daemon
 release-daemon: build-daemon
