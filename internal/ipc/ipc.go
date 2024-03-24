@@ -19,8 +19,6 @@ import (
 
 // InitIPC initializes the IPC setup and continuously listens on the given path for incoming connections
 func InitIPC(st *state.State, socketPath string, logger zerolog.Logger) error {
-	logger = logger.With().Str("job", "ipc").Logger()
-
 	// Check and remove the socket file if it already exists
 	//if _, err := os.Stat(opts.SocketPath); err == nil {
 	//	if err := os.Remove(opts.SocketPath); err != nil {
