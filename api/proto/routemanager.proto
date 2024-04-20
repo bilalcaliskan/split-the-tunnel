@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package routemanager;
+option go_package = "github.com/bilalcaliskan/split-the-tunnel/pkg/pb;routemanager";
+
+
+// The gRPC service definition.
+service RouteManager {
+  rpc AddRoute (AddRouteRequest) returns (AddRouteResponse) {}
+  rpc RemoveRoute (RemoveRouteRequest) returns (RemoveRouteResponse) {}
+  rpc ListRoutes (ListRoutesRequest) returns (ListRoutesResponse) {}
+}
+
+// Enum for business logic errors.
+enum BusinessError {
+  NO_ERROR = 0;
+  INVALID_DESTINATION = 1;
+  ROUTE_NOT_FOUND = 2;
+  ROUTE_ALREADY_EXISTS = 3;
+  // Extend with more business errors as needed.
+}
+
+// Request and response messages.
+message AddRouteRequest {
+  string destination = 1;
+}
+
+message AddRouteResponse {
+  bool success = 1;
+  string message = 2;
+  BusinessError error = 3;
+}
+
+message RemoveRouteRequest {
+  string destination = 1;
+}
+
+message RemoveRouteResponse {
+  bool success = 1;
+  string message = 2;
+  BusinessError error = 3;
+}
+
+message ListRoutesRequest {}
+
+message ListRoutesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string routes = 3;
+  BusinessError error = 4;
+}

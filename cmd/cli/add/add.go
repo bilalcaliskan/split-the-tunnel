@@ -1,14 +1,15 @@
 package add
 
 import (
+	"context"
 	"fmt"
-
-	"github.com/rs/zerolog"
-
-	"github.com/bilalcaliskan/split-the-tunnel/internal/constants"
+	"log"
+	"time"
 
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
+	pb "github.com/bilalcaliskan/split-the-tunnel/pkg/pb"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 // AddCmd represents the add command
@@ -29,25 +30,49 @@ to quickly create a Cobra application.`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger := cmd.Context().Value(constants.LoggerKey{}).(zerolog.Logger)
-		socketPath := cmd.Context().Value(constants.SocketPathKey{}).(string)
+		// Set up a connection to the server.
+		conn, err := grpc.Dial("localhost:50051", grpc.WithBlock())
+		if err != nil {
+			log.Fatalf("did not connect: %v", err)
+		}
+		defer conn.Close()
+		c := pb.NewRouteManagerClient(conn)
 
-		logger.Info().
-			Str("operation", cmd.Name()).
-			Any("args", args).
-			Msg(constants.ProcessCommand)
+		// Contact the server and print out its response.
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
 
-		for _, arg := range args {
-			req := fmt.Sprintf("%s %s", cmd.Name(), arg)
-			res, err := utils.SendCommandToDaemon(socketPath, req)
-			if err != nil {
-				logger.Error().Str("command", req).Err(err).Msg(constants.FailedToProcessCommand)
-				continue
-			}
+		r, err := c.AddRoute(ctx, &pb.AddRouteRequest{Destination: "example.com"})
+		if err != nil {
+			log.Fatalf("could not add route: %v", err)
+		}
+		fmt.Printf("AddRoute Response: %v\n", r)
 
-			logger.Info().Str("command", req).Str("response", res).Msg(constants.SuccessfullyProcessed)
+		// Handle the business error
+		if r.GetError() != pb.BusinessError_NO_ERROR {
+			fmt.Printf("Business Error: %v\n", r.GetError().String())
 		}
 
 		return nil
+		//logger := cmd.Context().Value(constants.LoggerKey{}).(zerolog.Logger)
+		//socketPath := cmd.Context().Value(constants.SocketPathKey{}).(string)
+		//
+		//logger.Info().
+		//	Str("operation", cmd.Name()).
+		//	Any("args", args).
+		//	Msg(constants.ProcessCommand)
+		//
+		//for _, arg := range args {
+		//	req := fmt.Sprintf("%s %s", cmd.Name(), arg)
+		//	res, err := utils.SendCommandToDaemon(socketPath, req)
+		//	if err != nil {
+		//		logger.Error().Str("command", req).Err(err).Msg(constants.FailedToProcessCommand)
+		//		continue
+		//	}
+		//
+		//	logger.Info().Str("command", req).Str("response", res).Msg(constants.SuccessfullyProcessed)
+		//}
+		//
+		//return nil
 	},
 }
