@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/bilalcaliskan/split-the-tunnel/cmd/cli/utils"
 	pb "github.com/bilalcaliskan/split-the-tunnel/pkg/pb"
 	"github.com/spf13/cobra"
@@ -31,7 +33,7 @@ to quickly create a Cobra application.`,
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Set up a connection to the server.
-		conn, err := grpc.Dial("localhost:50051", grpc.WithBlock())
+		conn, err := grpc.Dial("localhost:50051", grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			log.Fatalf("did not connect: %v", err)
 		}
