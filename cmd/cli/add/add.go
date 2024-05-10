@@ -49,7 +49,7 @@ to quickly create a Cobra application.`,
 		fmt.Printf("AddRoute Response: %v\n", r)
 
 		// Handle the business error
-		if r.GetError() != pb.BusinessError_NO_ERROR {
+		if r.GetError() != nil {
 			fmt.Printf("Business Error: %v\n", r.GetError().String())
 		}
 

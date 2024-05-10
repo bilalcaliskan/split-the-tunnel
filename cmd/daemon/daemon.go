@@ -135,9 +135,12 @@ func main() {
 func (s *server) AddRoute(ctx context.Context, req *pb.AddRouteRequest) (*pb.AddRouteResponse, error) {
 	if req.GetDestination() == "" {
 		return &pb.AddRouteResponse{
-			Success: false,
-			Message: "Destination cannot be empty",
-			Error:   pb.BusinessError_INVALID_DESTINATION,
+			Response: &pb.AddRouteResponse_Error{
+				Error: &pb.Error{
+					Code:        pb.StatusCode_INVALID_DESTINATION,
+					Description: "Destination cannot be empty",
+				},
+			},
 		}, nil
 	}
 
@@ -145,8 +148,11 @@ func (s *server) AddRoute(ctx context.Context, req *pb.AddRouteRequest) (*pb.Add
 
 	// Example response
 	return &pb.AddRouteResponse{
-		Success: true,
-		Message: "Route added successfully",
-		Error:   pb.BusinessError_NO_ERROR,
+		Response: &pb.AddRouteResponse_Payload{
+			Payload: &pb.AddRoutePayload{
+				Success: true,
+				Message: "Route added successfully",
+			},
+		},
 	}, nil
 }
