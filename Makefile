@@ -7,7 +7,7 @@ GOLANGCI_LINT_VERSION := latest
 REVIVE_VERSION := v1.3.4
 MOCKERY_VERSION := v2.39.1
 # Variables
-PROTO_DIR := ./api/proto
+PROTO_DIR := ./proto
 GO_PROTO_DIR := ./pkg/pb
 PROTO_FILES := $(wildcard $(PROTO_DIR)/*.proto)
 GO_OUT_OPTS := "paths=source_relative"

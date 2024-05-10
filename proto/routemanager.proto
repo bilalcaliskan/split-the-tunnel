@@ -11,12 +11,16 @@ service RouteManager {
   rpc ListRoutes (ListRoutesRequest) returns (ListRoutesResponse) {}
 }
 
+message Error {
+  StatusCode code = 1;
+  string description = 2;
+}
+
 // Enum for business logic errors.
-enum BusinessError {
-  NO_ERROR = 0;
-  INVALID_DESTINATION = 1;
-  ROUTE_NOT_FOUND = 2;
-  ROUTE_ALREADY_EXISTS = 3;
+enum StatusCode {
+  INVALID_DESTINATION = 0;
+  ROUTE_NOT_FOUND = 1;
+  ROUTE_ALREADY_EXISTS = 2;
   // Extend with more business errors as needed.
 }
 
@@ -26,9 +30,15 @@ message AddRouteRequest {
 }
 
 message AddRouteResponse {
+  oneof response {
+    AddRoutePayload payload = 1;
+    Error error = 2;
+  }
+}
+
+message AddRoutePayload {
   bool success = 1;
   string message = 2;
-  BusinessError error = 3;
 }
 
 message RemoveRouteRequest {
@@ -36,16 +46,26 @@ message RemoveRouteRequest {
 }
 
 message RemoveRouteResponse {
+  oneof response {
+    RemoveRoutePayload payload = 1;
+    Error error = 2;
+  }
+}
+
+message RemoveRoutePayload {
   bool success = 1;
   string message = 2;
-  BusinessError error = 3;
 }
 
 message ListRoutesRequest {}
 
 message ListRoutesResponse {
-  bool success = 1;
-  string message = 2;
-  repeated string routes = 3;
-  BusinessError error = 4;
+  oneof response {
+    ListRoutesPayload payload = 1;
+    Error error = 2;
+  }
+}
+
+message ListRoutesPayload {
+  repeated string routes = 1;
 }
