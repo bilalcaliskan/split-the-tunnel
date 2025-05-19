@@ -1,6 +1,7 @@
 module github.com/bilalcaliskan/split-the-tunnel
 
-go 1.21
+go 1.23
+
 toolchain go1.24.1
 
 require (
@@ -10,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	google.golang.org/grpc v1.72.0
+	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6
 )
 
